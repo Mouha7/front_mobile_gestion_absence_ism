@@ -4,7 +4,7 @@ import 'dart:convert';
 import '../models/pointage.dart';
 
 class PointageService extends GetxService {
-  final String baseUrl = 'https://TON_BACKEND_SPRINGBOOT_URL/api';
+  final String baseUrl = 'https:///api';
 
   Future<List<Pointage>> getPointagesVigile(String vigileId) async {
     final url = Uri.parse('$baseUrl/vigile/$vigileId/pointages');
