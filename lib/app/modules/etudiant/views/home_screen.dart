@@ -1,0 +1,1 @@
+// Accueil étudiant (QR_Code, QR_Scan) + Liste des absences/retards

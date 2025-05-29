@@ -1,0 +1,1 @@
+// Carte pour afficher un cours
