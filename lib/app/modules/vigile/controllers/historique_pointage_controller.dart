@@ -1,10 +1,9 @@
 import 'package:get/get.dart';
-import '../../data/models/pointage.dart';
-import '../../data/services/pointage_service.dart';
+import '../../../data/models/pointage.dart';
+import '../../../data/services/pointage_service.dart';
 
 class HistoriquePointageController extends GetxController {
   final PointageService _service = Get.find<PointageService>();
-
   final pointages = <Pointage>[].obs;
   final filteredPointages = <Pointage>[].obs;
   final isLoading = false.obs;
@@ -52,11 +51,11 @@ class HistoriquePointageController extends GetxController {
               p.classe.toLowerCase().contains(searchText.value.toLowerCase()) ||
               p.date.contains(searchText.value) ||
               p.heure.contains(searchText.value) ||
-              p.salle!.toLowerCase().contains(searchText.value.toLowerCase()))
+              (p.salle?.toLowerCase().contains(searchText.value.toLowerCase()) ?? false))
           .toList()
           .obs;
     }
-    // Tri par date (déjà filtré dans l’ordre sur la maquette)
+    // Tri par date décroissante
     if (filterType.value == 'Date') {
       res.sort((a, b) => b.date.compareTo(a.date));
     }

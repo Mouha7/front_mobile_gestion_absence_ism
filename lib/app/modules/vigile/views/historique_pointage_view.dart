@@ -65,7 +65,7 @@ class HistoriquePointageView extends GetView<HistoriquePointageController> {
               ],
             ),
             const SizedBox(height: 10),
-            // Liste des pointages
+            // Liste des pointages filtrée et recherchée
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
