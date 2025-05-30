@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:front_mobile_gestion_absence_ism/app/bindings/app_binding.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/absence_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/notification_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/retard_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/storage_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
@@ -20,8 +24,24 @@ Future<void> initServices() async {
   await Get.putAsync<StorageService>(() => StorageService().init());
   print('✅ Service de stockage initialisé');
 
-  Get.put(ApiService());
+  Get.put(ApiService(), permanent: true);
   print('✅ Service API initialisé');
+
+  // S'assurer que les autres services sont également initialisés
+  if (!Get.isRegistered<AbsenceService>()) {
+    Get.put(AbsenceService(Get.find<ApiService>()), permanent: true);
+    print('✅ Service Absence initialisé');
+  }
+
+  if (!Get.isRegistered<RetardService>()) {
+    Get.put(RetardService(Get.find<ApiService>()), permanent: true);
+    print('✅ Service Retard initialisé');
+  }
+
+  if (!Get.isRegistered<NotificationService>()) {
+    Get.put(NotificationService(), permanent: true);
+    print('✅ Service Notification initialisé');
+  }
 
   // Effectuer un test de connexion silencieux au démarrage
   try {
@@ -45,6 +65,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Gestion des Absences ISM',
       debugShowCheckedModeBanner: false,
+      initialBinding: AppBinding(), // Ajouter le binding principal ici
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,

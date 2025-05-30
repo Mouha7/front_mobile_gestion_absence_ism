@@ -17,7 +17,6 @@ class ServerConfigViewNew extends GetView<EtudiantController> {
 
     // Variables réactives pour l'état de la connexion et la recherche
     final RxBool isTestingConnection = false.obs;
-    final RxBool connectionSuccess = false.obs;
     final RxBool isSearchingNetworkIps = false.obs;
     final RxList<String> discoveredIps = <String>[].obs;
 

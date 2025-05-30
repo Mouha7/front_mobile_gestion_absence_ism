@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
