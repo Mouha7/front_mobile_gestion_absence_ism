@@ -1,3 +1,4 @@
+import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart';
 import 'package:get/get.dart';
 import '../data/services/api_service.dart';
 import '../data/services/storage_service.dart';
@@ -14,5 +15,6 @@ class AppBinding extends Bindings {
     
     // Controllers
     Get.put(AuthController(), permanent: true);
+    Get.put(EtudiantController(), permanent: true);
   }
 }

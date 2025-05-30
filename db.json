@@ -1,0 +1,217 @@
+{
+	"utilisateurs": [
+		{
+			"id": 1,
+			"matricule": "ISM2025001",
+			"nom": "Diallo",
+			"prenom": "Amadou",
+			"email": "amadou.diallo@example.com",
+			"telephone": "775554433",
+			"role": "etudiant",
+			"formation": "Développement Web et Mobile",
+			"niveau": "Master 2"
+		}
+	],
+	"retards": [
+		{
+			"id": 1,
+			"utilisateurId": 1,
+			"matiere": "Informatique",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "NDIAYE"
+		},
+		{
+			"id": 2,
+			"utilisateurId": 1,
+			"matiere": "Math Finance",
+			"date": "2025/07/17",
+			"duree": "2 heures",
+			"professeur": "DIOP"
+		},
+		{
+			"id": 3,
+			"utilisateurId": 1,
+			"matiere": "Java",
+			"date": "2025/12/29",
+			"duree": "4 heures",
+			"professeur": "WADE"
+		},
+		{
+			"id": 4,
+			"utilisateurId": 1,
+			"matiere": "SpringBoot",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "WANE"
+		},
+		{
+			"id": 5,
+			"utilisateurId": 1,
+			"matiere": "Flutter",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "WANE"
+		}
+	],
+	"absences": [
+		{
+			"id": 1,
+			"utilisateurId": 1,
+			"matiere": "Informatique",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "NDIAYE",
+			"justifie": false
+		},
+		{
+			"id": 2,
+			"utilisateurId": 1,
+			"matiere": "Math Finance",
+			"date": "2025/07/17",
+			"duree": "2 heures",
+			"professeur": "DIOP",
+			"justifie": true
+		},
+		{
+			"id": 3,
+			"utilisateurId": 1,
+			"matiere": "Java",
+			"date": "2025/12/29",
+			"duree": "4 heures",
+			"professeur": "WADE",
+			"justifie": false
+		},
+		{
+			"id": 4,
+			"utilisateurId": 1,
+			"matiere": "SpringBoot",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "WANE",
+			"justifie": false
+		},
+		{
+			"id": 5,
+			"utilisateurId": 1,
+			"matiere": "Flutter",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "WANE",
+			"justifie": false
+		},
+		{
+			"id": 6,
+			"utilisateurId": 1,
+			"matiere": "Angular",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "WANE",
+			"justifie": false
+		},
+		{
+			"id": 7,
+			"utilisateurId": 1,
+			"matiere": "Python",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "Niang",
+			"justifie": false
+		},
+		{
+			"id": 8,
+			"utilisateurId": 1,
+			"matiere": "Python",
+			"date": "2025/09/17",
+			"duree": "4 heures",
+			"professeur": "Niang",
+			"justifie": true
+		}
+	],
+	"matieres": [
+		{
+			"id": 1,
+			"nom": "Informatique",
+			"code": "INFO001",
+			"professeur": "NDIAYE"
+		},
+		{
+			"id": 2,
+			"nom": "Math Finance",
+			"code": "MF001",
+			"professeur": "DIOP"
+		},
+		{
+			"id": 3,
+			"nom": "Java",
+			"code": "JAVA001",
+			"professeur": "WADE"
+		},
+		{
+			"id": 4,
+			"nom": "SpringBoot",
+			"code": "SB001",
+			"professeur": "WANE"
+		},
+		{
+			"id": 5,
+			"nom": "Flutter",
+			"code": "FL001",
+			"professeur": "WANE"
+		},
+		{
+			"id": 6,
+			"nom": "Angular",
+			"code": "ANG001",
+			"professeur": "WANE"
+		},
+		{
+			"id": 7,
+			"nom": "Python",
+			"code": "PY001",
+			"professeur": "Niang"
+		}
+	],
+	"professeurs": [
+		{
+			"id": 1,
+			"nom": "NDIAYE",
+			"prenom": "Moustapha",
+			"telephone": "771234567",
+			"email": "moustapha.ndiaye@example.com",
+			"specialite": "Informatique"
+		},
+		{
+			"id": 2,
+			"nom": "DIOP",
+			"prenom": "Fatou",
+			"telephone": "772345678",
+			"email": "fatou.diop@example.com",
+			"specialite": "Mathématiques"
+		},
+		{
+			"id": 3,
+			"nom": "WADE",
+			"prenom": "Modou",
+			"telephone": "773456789",
+			"email": "modou.wade@example.com",
+			"specialite": "Génie Logiciel"
+		},
+		{
+			"id": 4,
+			"nom": "WANE",
+			"prenom": "Aminata",
+			"telephone": "774567890",
+			"email": "aminata.wane@example.com",
+			"specialite": "Développement Mobile"
+		},
+		{
+			"id": 5,
+			"nom": "Niang",
+			"prenom": "Ibrahim",
+			"telephone": "775678901",
+			"email": "ibrahim.niang@example.com",
+			"specialite": "Science des Données"
+		}
+	]
+}

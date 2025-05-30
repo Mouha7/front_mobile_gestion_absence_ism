@@ -3,13 +3,14 @@ part of 'app_pages.dart';
 abstract class Routes {
   static const HOME = '/home';
   static const LOGIN = '/login';
-  
+
   // Routes Étudiant
   static const ETUDIANT_DASHBOARD = '/etudiant/dashboard';
   static const ETUDIANT_ABSENCES = '/etudiant/absences';
   static const ETUDIANT_JUSTIFICATION = '/etudiant/justification';
   static const ETUDIANT_PROFILE = '/etudiant/profile';
-  
+  static const ETUDIANT_SERVER_CONFIG = '/etudiant/server-config';
+
   // Routes Vigile
   static const VIGILE_DASHBOARD = '/vigile/dashboard';
   static const VIGILE_HISTORIQUE = '/vigile/historique';

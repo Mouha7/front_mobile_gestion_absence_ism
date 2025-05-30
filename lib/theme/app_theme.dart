@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static final Color primaryColor = Colors.blue;
+  static final Color primaryColor = Color(0xFF743E1D);
+  static final Color secondaryColor = Color(0xFF452916);
+  static final Color blurColor = Color.fromRGBO(69, 41, 22, 0.25);
   static final Color accentColor = Colors.blueAccent;
   
   // Thème clair
