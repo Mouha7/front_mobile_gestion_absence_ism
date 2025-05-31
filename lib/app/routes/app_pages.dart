@@ -4,7 +4,6 @@ import 'package:front_mobile_gestion_absence_ism/app/modules/auth/views/login_vi
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/binding/etudiant_binding.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/home_screen.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/historique_absence_screen.dart';
-import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/server_config_view.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
 
 part 'app_routes.dart';
@@ -31,11 +30,6 @@ class AppPages {
     GetPage(
       name: Routes.ETUDIANT_ABSENCES,
       page: () => EtudiantAbsencesView(),
-      binding: EtudiantBinding(),
-    ),
-    GetPage(
-      name: Routes.ETUDIANT_SERVER_CONFIG,
-      page: () => ServerConfigViewNew(),
       binding: EtudiantBinding(),
     ),
     // Ajoutez les autres routes ici

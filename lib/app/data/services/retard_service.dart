@@ -25,22 +25,4 @@ class RetardService extends GetxService {
       return [];
     }
   }
-
-  // Marquer un retard pour un étudiant
-  Future<bool> markRetard(
-    String studentId,
-    String courseId,
-    int dureeMinutes,
-  ) async {
-    try {
-      final response = await _apiService.post('/retards/mark', {
-        'studentId': studentId,
-        'courseId': courseId,
-        'dureeMinutes': dureeMinutes,
-      });
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
 }

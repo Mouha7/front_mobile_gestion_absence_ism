@@ -55,7 +55,7 @@ class AbsenceService extends GetxService {
 
     // Appliquer le filtre de date si présent
     if (selectedDate != null) {
-      // Convertir la date sélectionnée en chaîne de caractères au format JJ/MM/YYYY
+      // Convertir la date sélectionnée en chaîne de caractères au format YYYY/MM/JJ
       final day = selectedDate.day.toString().padLeft(2, '0');
       final month = selectedDate.month.toString().padLeft(2, '0');
       final year = selectedDate.year.toString();
@@ -63,23 +63,10 @@ class AbsenceService extends GetxService {
 
       result =
           result.where((absence) {
-            return absence['date'].toString().contains(dateStr);
+            return absence['date'] == dateStr;
           }).toList();
     }
 
     return result;
-  }
-
-  // Marquer une absence pour un étudiant
-  Future<bool> markAbsence(String studentId, String courseId) async {
-    try {
-      final response = await _apiService.post('/absences/mark', {
-        'studentId': studentId,
-        'courseId': courseId,
-      });
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
   }
 }

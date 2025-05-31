@@ -92,13 +92,6 @@ class EtudiantController extends GetxController {
     }
   }
 
-  // Méthode pour changer l'URL du serveur
-  void setServerUrl(String url) {
-    // Seul l'ApiService doit être responsable de gérer l'URL du serveur
-    _apiService.setBaseUrl(url);
-    checkServerConnection();
-  }
-
   // Méthode pour rafraîchir les données
   Future<void> refreshData() async {
     // Afficher l'indicateur de connexion lors du rafraîchissement
