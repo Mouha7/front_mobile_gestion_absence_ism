@@ -1,1 +1,0 @@
-// Indicateur de chargement

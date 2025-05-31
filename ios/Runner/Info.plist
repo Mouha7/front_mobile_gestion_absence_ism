@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Nous avons besoin d'accéder à votre caméra pour prendre des photos de vos justificatifs d'absence</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Nous avons besoin d'accéder à votre galerie pour sélectionner des documents justificatifs</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Nous n'utilisons pas le microphone mais il est requis pour le fonctionnement de la caméra</string>
 </dict>
 </plist>

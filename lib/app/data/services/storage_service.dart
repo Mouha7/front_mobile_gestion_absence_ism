@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,16 +25,25 @@ class StorageService extends GetxService {
 
   // Sauvegarder les données utilisateur
   Future<bool> saveUser(Map<String, dynamic> userData) async {
-    return await _prefs.setString('user', userData.toString());
+    try {
+      // Conversion en JSON pour stockage sécurisé
+      return await _prefs.setString('user', jsonEncode(userData));
+    } catch (e) {
+      print('❌ Erreur lors de la sauvegarde des données utilisateur: $e');
+      return false;
+    }
   }
 
   // Récupérer les données utilisateur
   Map<String, dynamic>? getUser() {
     final userStr = _prefs.getString('user');
-    if (userStr != null) {
-      // Conversion de la chaîne en Map
-      // Note: Dans un cas réel, utilisez json.decode
-      return {'id': '1', 'nom': 'Test'}; // Exemple simplifié
+    if (userStr != null && userStr.isNotEmpty) {
+      try {
+        // Conversion de la chaîne JSON en Map
+        return jsonDecode(userStr) as Map<String, dynamic>;
+      } catch (e) {
+        print('❌ Erreur lors de la récupération des données utilisateur: $e');
+      }
     }
     return null;
   }

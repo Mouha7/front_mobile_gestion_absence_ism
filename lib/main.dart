@@ -1,21 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/storage_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/auth_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/absence_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
-import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
+import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/snackbar_utils.dart';
+import 'package:front_mobile_gestion_absence_ism/app/modules/widgets/connection_error_banner.dart';
 import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialiser les services
   await initServices();
-  
+
   runApp(MyApp());
 }
 
 Future<void> initServices() async {
+  // Initialiser d'abord le service de stockage
   await Get.putAsync<StorageService>(() => StorageService().init());
-  // Initialiser d'autres services si nécessaire
+
+  // Puis le service API
+  await Get.putAsync<ApiService>(() async => ApiService());
+
+  // Le service d'authentification
+  Get.put<AuthService>(AuthService());
+
+  // Enfin le service des absences
+  Get.put<AbsenceService>(AbsenceService());
 }
 
 class MyApp extends StatelessWidget {
@@ -26,8 +39,6 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Gestion des Absences ISM',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,

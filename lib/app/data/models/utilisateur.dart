@@ -1,4 +1,5 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/role.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/models/absence.dart';
 
 class Utilisateur {
   final String id;
@@ -6,27 +7,38 @@ class Utilisateur {
   final String prenom;
   final String email;
   final Role role;
-  
+  List<Absence> absences;
+
   Utilisateur({
     required this.id,
     required this.nom,
     required this.prenom,
     required this.email,
     required this.role,
+    this.absences = const [],
   });
-  
+
   String get nomComplet => '$prenom $nom';
-  
+
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
+    List<Absence> absences = [];
+    if (json['absences'] != null) {
+      absences =
+          (json['absences'] as List)
+              .map((item) => Absence.fromJson(item))
+              .toList();
+    }
+
     return Utilisateur(
-      id: json['id'],
-      nom: json['nom'],
-      prenom: json['prenom'],
-      email: json['email'],
-      role: _parseRole(json['role']),
+      id: json['id']?.toString() ?? '',
+      nom: json['nom']?.toString() ?? '',
+      prenom: json['prenom']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      role: _parseRole(json['role']?.toString() ?? 'ETUDIANT'),
+      absences: absences,
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -36,7 +48,7 @@ class Utilisateur {
       'role': role.toString().split('.').last,
     };
   }
-  
+
   static Role _parseRole(String roleStr) {
     switch (roleStr) {
       case 'ETUDIANT':

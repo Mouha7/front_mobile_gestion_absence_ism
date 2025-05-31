@@ -1,1 +1,0 @@
-// Barre d'application personnalisée
