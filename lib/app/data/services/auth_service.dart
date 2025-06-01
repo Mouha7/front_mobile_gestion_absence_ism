@@ -1,5 +1,6 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/models/etudiant.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/models/login_response.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/models/vigile.dart';
 import 'package:get/get.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
@@ -21,34 +22,80 @@ class AuthService extends GetxService {
         throw Exception('Réponse d\'authentification invalide');
       }
       final loginResponse = LoginResponse.fromJson(response['results']);
-      // Extraire l'ID à partir de redirectEndpoint
-      final id = loginResponse.redirectEndpoint.split('/').last;
+      
+      // Vérifier le rôle de l'utilisateur pour déterminer le bon endpoint
       final userResponse;
-      if (loginResponse.redirectEndpoint == "") {
-        userResponse = await _apiService.get('vigile/$id/historique');
-      } else {
+      String id;
+      
+      print('🔍 Role: ${loginResponse.role}');
+      print('🔍 RedirectEndpoint: ${loginResponse.redirectEndpoint}');
+      
+      // Utiliser directement userId si redirectEndpoint est vide
+      id = loginResponse.userId;
+      
+      if (loginResponse.role == 'VIGILE') {
+        print('🔍 Utilisation de userId pour le vigile: $id');
+        userResponse = await _apiService.get('vigile/$id');
+      } else if (loginResponse.role == 'ETUDIANT') {
+        print('🔍 Utilisation de userId pour l\'\u00e9tudiant: $id');
         userResponse = await _apiService.get('etudiant/$id');
+      } else {
+        // Pour les autres rôles (admin, etc.)
+        throw Exception('Rôle non supporté dans l\'application mobile: ${loginResponse.role}');
       }
 
       if (userResponse == null || userResponse['results'] == null) {
         throw Exception('Utilisateur non trouvé');
       }
 
-      print('🔍 Données étudiant: ${userResponse['results']}');
-      final user = Etudiant.fromJson(userResponse['results']);
+      print('🔍 Données utilisateur: ${userResponse['results']}');
+      
+      // Créer le bon type d'utilisateur selon le rôle
+      dynamic user;
+      if (loginResponse.role == 'VIGILE') {
+        try {
+          user = Vigile.fromJson(userResponse['results']);
+          print('🔍 Vigile créé avec succès: ${user.nomComplet}');
+        } catch (e) {
+          print('🔍 Erreur lors de la création du vigile: $e');
+          print('🔍 Structure reçue: ${userResponse['results']}');
+          throw Exception('Erreur lors de la création du vigile: $e');
+        }
+      } else {
+        try {
+          user = Etudiant.fromJson(userResponse['results']);
+          print('🔍 Étudiant créé avec succès: ${user.nomComplet}');
+        } catch (e) {
+          print('🔍 Erreur lors de la création de l\'\u00e9tudiant: $e');
+          print('🔍 Structure reçue: ${userResponse['results']}');
+          throw Exception('Erreur lors de la création de l\'\u00e9tudiant: $e');
+        }
+      }
 
-      print('🔍 Utilisateur récupéré: $userResponse');
-
+      print('🔍 Utilisateur récupéré: ${user.toJson()}');
       await _storageService.saveUser(user.toJson());
-      return {
+      
+      // Créer un objet de retour différent selon le type d'utilisateur
+      Map<String, dynamic> returnData = {
         "nom": user.nom,
         "prenom": user.prenom,
         "email": user.email,
         "role": loginResponse.role,
-        "matricule": user.matricule,
-        "classe": user.classe,
-        "absences": user.absences.map((a) => a.toJson()).toList(),
       };
+      
+      // Ajouter les propriétés spécifiques selon le type d'utilisateur
+      if (loginResponse.role == 'VIGILE') {
+        // Pour les vigiles, ajouter le badge
+        returnData["badge"] = (user as Vigile).badge;
+      } else if (loginResponse.role == 'ETUDIANT') {
+        // Pour les étudiants, ajouter matricule, classe et absences
+        Etudiant etudiant = user as Etudiant;
+        returnData["matricule"] = etudiant.matricule;
+        returnData["classe"] = etudiant.classe;
+        returnData["absences"] = etudiant.absences.map((a) => a.toJson()).toList();
+      }
+      
+      return returnData;
     } catch (e) {
       print('❌ Erreur de connexion: $e');
       throw Exception('Email ou mot de passe incorrect');
