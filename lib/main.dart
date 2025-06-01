@@ -4,8 +4,6 @@ import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.d
 import 'package:front_mobile_gestion_absence_ism/app/data/services/auth_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/absence_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
-import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/snackbar_utils.dart';
-import 'package:front_mobile_gestion_absence_ism/app/modules/widgets/connection_error_banner.dart';
 import 'package:get/get.dart';
 
 void main() async {

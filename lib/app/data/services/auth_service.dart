@@ -9,10 +9,8 @@ class AuthService extends GetxService {
   final ApiService _apiService = Get.find<ApiService>();
   final StorageService _storageService = Get.find<StorageService>();
 
-  // Méthode d'authentification avec Spring Boot API
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
-      // Appel à l'API Spring Boot pour l'authentification
       final response = await _apiService.post('auth/login', {
         'email': email,
         'motDePasse': password,
@@ -23,24 +21,40 @@ class AuthService extends GetxService {
       }
       final loginResponse = LoginResponse.fromJson(response['results']);
       
-      // Vérifier le rôle de l'utilisateur pour déterminer le bon endpoint
       final userResponse;
       String id;
       
       print('🔍 Role: ${loginResponse.role}');
       print('🔍 RedirectEndpoint: ${loginResponse.redirectEndpoint}');
       
-      // Utiliser directement userId si redirectEndpoint est vide
-      id = loginResponse.userId;
+      // Extraire l'ID du redirectEndpoint s'il est disponible, sinon utiliser userId
+      if (loginResponse.redirectEndpoint.isNotEmpty) {
+        final parts = loginResponse.redirectEndpoint.split('/');
+        if (parts.isNotEmpty) {
+          final extractedId = parts.lastWhere((part) => part.isNotEmpty, orElse: () => '');
+          if (extractedId.isNotEmpty) {
+            id = extractedId;
+            print('🔍 ID extrait du redirectEndpoint: $id');
+          } else {
+            id = loginResponse.userId;
+            print('🔍 Utilisation de userId (redirectEndpoint mal formé): $id');
+          }
+        } else {
+          id = loginResponse.userId;
+          print('🔍 Utilisation de userId (redirectEndpoint vide): $id');
+        }
+      } else {
+        id = loginResponse.userId;
+        print('🔍 Utilisation de userId (pas de redirectEndpoint): $id');
+      }
       
       if (loginResponse.role == 'VIGILE') {
-        print('🔍 Utilisation de userId pour le vigile: $id');
+        print('🔍 Appel API pour le vigile avec ID: $id');
         userResponse = await _apiService.get('vigile/$id');
       } else if (loginResponse.role == 'ETUDIANT') {
-        print('🔍 Utilisation de userId pour l\'\u00e9tudiant: $id');
+        print('🔍 Appel API pour l\'\u00e9tudiant avec ID: $id');
         userResponse = await _apiService.get('etudiant/$id');
       } else {
-        // Pour les autres rôles (admin, etc.)
         throw Exception('Rôle non supporté dans l\'application mobile: ${loginResponse.role}');
       }
 
@@ -50,7 +64,6 @@ class AuthService extends GetxService {
 
       print('🔍 Données utilisateur: ${userResponse['results']}');
       
-      // Créer le bon type d'utilisateur selon le rôle
       dynamic user;
       if (loginResponse.role == 'VIGILE') {
         try {
@@ -75,7 +88,6 @@ class AuthService extends GetxService {
       print('🔍 Utilisateur récupéré: ${user.toJson()}');
       await _storageService.saveUser(user.toJson());
       
-      // Créer un objet de retour différent selon le type d'utilisateur
       Map<String, dynamic> returnData = {
         "nom": user.nom,
         "prenom": user.prenom,
@@ -83,12 +95,9 @@ class AuthService extends GetxService {
         "role": loginResponse.role,
       };
       
-      // Ajouter les propriétés spécifiques selon le type d'utilisateur
       if (loginResponse.role == 'VIGILE') {
-        // Pour les vigiles, ajouter le badge
         returnData["badge"] = (user as Vigile).badge;
       } else if (loginResponse.role == 'ETUDIANT') {
-        // Pour les étudiants, ajouter matricule, classe et absences
         Etudiant etudiant = user as Etudiant;
         returnData["matricule"] = etudiant.matricule;
         returnData["classe"] = etudiant.classe;

@@ -7,6 +7,7 @@ class Etudiant extends Utilisateur {
   final String filiere;
   final String niveau;
   final String classe;
+  @override
   final List<Absence> absences;
 
   Etudiant({
