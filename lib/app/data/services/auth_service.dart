@@ -20,18 +20,21 @@ class AuthService extends GetxService {
         throw Exception('Réponse d\'authentification invalide');
       }
       final loginResponse = LoginResponse.fromJson(response['results']);
-      
+
       final userResponse;
       String id;
-      
+
       print('🔍 Role: ${loginResponse.role}');
       print('🔍 RedirectEndpoint: ${loginResponse.redirectEndpoint}');
-      
+
       // Extraire l'ID du redirectEndpoint s'il est disponible, sinon utiliser userId
       if (loginResponse.redirectEndpoint.isNotEmpty) {
         final parts = loginResponse.redirectEndpoint.split('/');
         if (parts.isNotEmpty) {
-          final extractedId = parts.lastWhere((part) => part.isNotEmpty, orElse: () => '');
+          final extractedId = parts.lastWhere(
+            (part) => part.isNotEmpty,
+            orElse: () => '',
+          );
           if (extractedId.isNotEmpty) {
             id = extractedId;
             print('🔍 ID extrait du redirectEndpoint: $id');
@@ -47,7 +50,7 @@ class AuthService extends GetxService {
         id = loginResponse.userId;
         print('🔍 Utilisation de userId (pas de redirectEndpoint): $id');
       }
-      
+
       if (loginResponse.role == 'VIGILE') {
         print('🔍 Appel API pour le vigile avec ID: $id');
         userResponse = await _apiService.get('vigile/$id');
@@ -55,7 +58,9 @@ class AuthService extends GetxService {
         print('🔍 Appel API pour l\'\u00e9tudiant avec ID: $id');
         userResponse = await _apiService.get('etudiant/$id');
       } else {
-        throw Exception('Rôle non supporté dans l\'application mobile: ${loginResponse.role}');
+        throw Exception(
+          'Rôle non supporté dans l\'application mobile: ${loginResponse.role}',
+        );
       }
 
       if (userResponse == null || userResponse['results'] == null) {
@@ -63,7 +68,7 @@ class AuthService extends GetxService {
       }
 
       print('🔍 Données utilisateur: ${userResponse['results']}');
-      
+
       dynamic user;
       if (loginResponse.role == 'VIGILE') {
         try {
@@ -87,23 +92,24 @@ class AuthService extends GetxService {
 
       print('🔍 Utilisateur récupéré: ${user.toJson()}');
       await _storageService.saveUser(user.toJson());
-      
+
       Map<String, dynamic> returnData = {
         "nom": user.nom,
         "prenom": user.prenom,
         "email": user.email,
         "role": loginResponse.role,
       };
-      
+
       if (loginResponse.role == 'VIGILE') {
         returnData["badge"] = (user as Vigile).badge;
       } else if (loginResponse.role == 'ETUDIANT') {
         Etudiant etudiant = user as Etudiant;
         returnData["matricule"] = etudiant.matricule;
         returnData["classe"] = etudiant.classe;
-        returnData["absences"] = etudiant.absences.map((a) => a.toJson()).toList();
+        returnData["absences"] =
+            etudiant.absences.map((a) => a.toJson()).toList();
       }
-      
+
       return returnData;
     } catch (e) {
       print('❌ Erreur de connexion: $e');
@@ -128,8 +134,18 @@ class AuthService extends GetxService {
     }
 
     try {
+      // Déterminer l'endpoint en fonction du rôle stocké
+      String endpoint = 'utilisateur/profile';
+      final userRole = cachedUser?['role'];
+
+      if (userRole == 'ETUDIANT') {
+        endpoint = 'etudiant/profile';
+      } else if (userRole == 'VIGILE') {
+        endpoint = 'vigile/profile';
+      }
+
       // Récupérer le profil de l'utilisateur connecté avec le token
-      final response = await _apiService.get('', requireAuth: true);
+      final response = await _apiService.get(endpoint, requireAuth: true);
 
       if (response != null) {
         final user = response;

@@ -8,8 +8,14 @@ class VigileProfileView extends GetView<AuthController> {
 
   @override
   Widget build(BuildContext context) {
+    // Essayer de charger les données utilisateur si elles sont manquantes
+    if (controller.userData.value == null) {
+      controller.loadUserData();
+    }
+
     return Obx(() {
       final userData = controller.userData.value;
+      print('🔍 VigileProfileView - userData: ${controller.userData}');
 
       if (userData == null) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));

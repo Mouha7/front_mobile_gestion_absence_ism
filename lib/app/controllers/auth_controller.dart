@@ -27,13 +27,31 @@ class AuthController extends GetxController {
     isLoggedIn.value = _authService.isLoggedIn();
     if (isLoggedIn.value) {
       final userDataMap = _storageService.getUser();
+      print('🔍 Données utilisateur récupérées du storage: $userDataMap');
+
       if (userDataMap != null) {
-        userData.value = null;
+        userData.value = userDataMap;
+        print('✅ Données utilisateur chargées dans le controller');
+      } else {
+        print('⚠️ Aucune donnée utilisateur trouvée dans le storage');
+        // Essayer de récupérer les données utilisateur depuis le service
+        loadUserData();
       }
 
       // Rediriger l'utilisateur en fonction de son rôle
       // Utiliser un délai pour éviter les problèmes pendant le build
       Future.delayed(Duration.zero, () => redirectBasedOnRole());
+    }
+  }
+
+  // Méthode pour charger les données utilisateur depuis le service d'authentification
+  Future<void> loadUserData() async {
+    try {
+      final user = await _authService.getCurrentUser();
+      userData.value = user;
+      print('✅ Données utilisateur chargées depuis le service');
+    } catch (e) {
+      print('❌ Erreur lors du chargement des données utilisateur: $e');
     }
   }
 
@@ -45,8 +63,15 @@ class AuthController extends GetxController {
       // Utiliser le service d'authentification pour la connexion
       final loginResponse = await _authService.login(email, password);
       print('🔍 Réponse de connexion: $loginResponse');
+
+      // Sauvegarder les données dans le storage
+      await _storageService.saveUser(loginResponse);
+
+      // Mettre à jour l'état local
       userData.value = loginResponse;
       isLoggedIn.value = true;
+
+      print('✅ Données utilisateur sauvegardées: ${userData.value}');
 
       // Rediriger l'utilisateur en fonction de son rôle
       redirectBasedOnRole();
