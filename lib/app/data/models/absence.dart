@@ -1,13 +1,14 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/statut_absence.dart';
 
-import 'cours.dart';
-
 class Absence {
   final String id;
   final String heurePointage;
   final String minutesRetard;
   final TypeAbsence type;
-  final Cours? cours;
+  final String nomCours;
+  final String professeur;
+  final String salle;
+  final String heureDebut;
   final bool isJustification;
 
   Absence({
@@ -15,8 +16,11 @@ class Absence {
     required this.heurePointage,
     required this.minutesRetard,
     required this.type,
-    this.cours,
+    required this.nomCours,
     required this.isJustification,
+    required this.professeur,
+    required this.salle,
+    required this.heureDebut,
   });
 
   factory Absence.fromJson(Map<String, dynamic> json) {
@@ -25,8 +29,11 @@ class Absence {
       heurePointage: json['heurePointage']?.toString() ?? '00:00',
       minutesRetard: json['minutesRetard']?.toString() ?? '0',
       type: _parseType(json['type']?.toString() ?? 'RETARD'),
-      cours: json['cours'] != null ? Cours.fromJson(json['cours']) : null,
+      nomCours: json['nomCours']?.toString() ?? "cours",
       isJustification: json['justification'] ?? false,
+      professeur: json['professeur'] ?? 'professeur',
+      salle: json['salle'] ?? 'salle',
+      heureDebut: json['heureDebut'] ?? '00:00'
     );
   }
 
@@ -36,8 +43,11 @@ class Absence {
       'heurePointage': heurePointage,
       'minutesRetard': minutesRetard,
       'type': type.toString().split('.').last,
-      'coursId': cours?.id,
       'isJustification': isJustification,
+      'nomCours': nomCours,
+      'professeur': professeur,
+      'salle': salle,
+      'heureDebut': heureDebut
     };
   }
 

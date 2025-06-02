@@ -68,6 +68,7 @@ class EtudiantController extends GetxController {
     try {
       final userData = _storageService.getUser();
       print('Données utilisateur récupérées: $userData');
+
       if (userData != null && userData['absences'] != null) {
         final absences = List<Map<String, dynamic>>.from(userData['absences']);
 
@@ -75,11 +76,19 @@ class EtudiantController extends GetxController {
         final formattedRetards =
             absences.map((absence) {
               return {
-                'matiere':
-                'Retard', // Par défaut car on n'a pas les détails du cours
+                'nomCours':
+                    absence['nomCours'] ??
+                    absence['cours']?['nom'] ??
+                    'Matière inconnue',
                 'date': absence['heurePointage'] ?? '',
+                'heurePointage': absence['heurePointage'],
                 'duree': '${absence['minutesRetard'] ?? '0'} min',
                 'type': absence['type'] ?? 'RETARD',
+                'professeur':
+                    absence['professeur'] ?? absence['cours']?['enseignant'],
+                'salle': absence['salle'] ?? absence['cours']?['salle'],
+                'heureDebut':
+                    absence['heureDebut'] ?? absence['cours']?['heureDebut'],
               };
             }).toList();
 
@@ -88,7 +97,6 @@ class EtudiantController extends GetxController {
         return;
       }
 
-      // Si pas d'absences, initialiser une liste vide
       retards.clear();
     } catch (e) {
       print('Erreur lors de la récupération des retards: $e');
@@ -97,17 +105,25 @@ class EtudiantController extends GetxController {
   }
 
   // Méthode pour initialiser les données du QR code
-  void _initQRCodeData() async {
+  void _initQRCodeData() {
     try {
       final userData = _storageService.getUser();
-      if (userData != null && userData['matricule'] != null) {
-        qrCodeData.value = userData['matricule'];
-        print('✅ QR Code initialisé avec le matricule: ${qrCodeData.value}');
-      } else {
-        print('❌ Aucun matricule trouvé dans les données utilisateur');
+      print('Données utilisateur récupérées: $userData');
+
+      if (userData != null) {
+        String? userMatricule = userData['matricule']?.toString();
+        if (userMatricule != null && userMatricule.isNotEmpty) {
+          qrCodeData.value = userMatricule;
+          print('✅ QR Code initialisé avec le matricule: ${qrCodeData.value}');
+          return;
+        }
       }
+
+      print('❌ Aucun matricule trouvé dans les données utilisateur');
+      qrCodeData.value = 'ETUDIANT-INCONNU';
     } catch (e) {
       print('❌ Erreur lors de l\'initialisation du QR code: $e');
+      qrCodeData.value = 'ETUDIANT-ERREUR';
     }
   }
 
@@ -115,11 +131,18 @@ class EtudiantController extends GetxController {
   Future<void> _refreshQRCode() async {
     try {
       final userData = _storageService.getUser();
-      if (userData != null && userData['matricule'] != null) {
-        // On garde le même matricule car c'est une donnée fixe
-        qrCodeData.value = userData['matricule'];
-        print('✅ QR Code rafraîchi: ${qrCodeData.value}');
+      print('Données utilisateur rafraîchies: $userData');
+
+      if (userData != null) {
+        String? userMatricule = userData['matricule']?.toString();
+        if (userMatricule != null && userMatricule.isNotEmpty) {
+          qrCodeData.value = userMatricule;
+          print('✅ QR Code rafraîchi: ${qrCodeData.value}');
+          return;
+        }
       }
+
+      print('❌ Aucun matricule trouvé lors du rafraîchissement');
     } catch (e) {
       print('❌ Erreur lors du rafraîchissement du QR code: $e');
     }

@@ -106,7 +106,7 @@ class VigileHomeScreen extends GetView<VigileController> {
               ),
             ),
             Positioned(
-              bottom: 20,
+              bottom: 40, // Remonté de 20px (changé de 20 à 40)
               left: 0,
               right: 0,
               child: Center(
@@ -409,9 +409,8 @@ class VigileHomeScreen extends GetView<VigileController> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.0),
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
                   child: Text(
                     'Scanner le QR pour vérifier l\'identité',
                     style: TextStyle(

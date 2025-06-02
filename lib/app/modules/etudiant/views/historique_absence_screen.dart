@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/date_formatter.dart';
 import 'package:get/get.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/historique_controller.dart';
@@ -305,10 +306,38 @@ class EtudiantAbsencesView extends GetView<HistoriqueController> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildDetailRow('Matière', absence['matiere']),
-                        _buildDetailRow('Date', absence['date']),
-                        _buildDetailRow('Durée', absence['duree']),
-                        _buildDetailRow('Professeur', absence['professeur']),
+                        _buildDetailRow(
+                          'Matière',
+                          absence['matiere'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Date',
+                          absence['date'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Durée',
+                          absence['duree'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Professeur',
+                          absence['professeur'] ?? 'Non spécifié',
+                        ),
+                        _buildDetailRow(
+                          'Salle',
+                          absence['salle'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Heure de début',
+                          DateFormatter.formatTime(absence['heureDebut']),
+                        ),
+                        _buildDetailRow(
+                          'Heure d\'arrivée',
+                          DateFormatter.formatTime(absence['heurePointage']),
+                        ),
+                        _buildDetailRow(
+                          'État',
+                          absence['etat'] ?? 'Non spécifié',
+                        ),
                         const SizedBox(height: 16),
                         Align(
                           alignment: Alignment.centerRight,

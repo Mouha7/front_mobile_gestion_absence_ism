@@ -81,7 +81,7 @@ class HistoriqueController extends GetxController {
       final query = searchQuery.value.toLowerCase();
       result =
           result.where((absence) {
-            final matiere = absence['matiere']?.toString().toLowerCase() ?? '';
+            final matiere = absence['nomCours']?.toString().toLowerCase() ?? '';
             final professeur =
                 absence['professeur']?.toString().toLowerCase() ?? '';
             final date = absence['date']?.toString().toLowerCase() ?? '';

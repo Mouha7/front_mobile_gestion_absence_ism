@@ -78,17 +78,19 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                     ),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.qr_code_scanner, color: Colors.black),
-                      SizedBox(width: 8),
+                      const Icon(Icons.badge_outlined, color: Colors.black),
+                      const SizedBox(width: 8),
                       Text(
-                        'Scanner',
-                        style: TextStyle(
+                        controller.qrCodeData.value.isNotEmpty
+                            ? controller.qrCodeData.value
+                            : 'Chargement...',
+                        style: const TextStyle(
                           color: Colors.black,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -250,7 +252,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                 child: const Icon(Icons.menu_book, color: Colors.white),
               ),
               title: Text(
-                retard['matiere'] ?? 'Matière inconnue',
+                retard['nomCours'] ?? 'Matière inconnue',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -291,8 +293,8 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                         color: Colors.red,
                       ),
                     ),
-                    Icon(Icons.arrow_drop_down, color: Colors.red)
-                  ]
+                    Icon(Icons.arrow_drop_down, color: Colors.red),
+                  ],
                 ),
               ),
               onTap: () {
@@ -319,7 +321,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                           const SizedBox(height: 16),
                           _buildDetailRow(
                             'Matière',
-                            retard['matiere'] ?? 'Non spécifiée',
+                            retard['nomCours'] ?? 'Non spécifiée',
                           ),
                           _buildDetailRow(
                             'Date',
@@ -339,11 +341,11 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                           ),
                           _buildDetailRow(
                             'Heure de début',
-                            retard['heureDebut'] ?? 'Non spécifiée',
+                            DateFormatter.formatTime(retard['heureDebut']),
                           ),
                           _buildDetailRow(
-                            'Heure d\'arrivée',
-                            retard['heureArrivee'] ?? 'Non spécifiée',
+                            'Heure de pointage',
+                            DateFormatter.formatTime(retard['heurePointage']),
                           ),
                           const SizedBox(height: 16),
                           Align(

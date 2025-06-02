@@ -26,30 +26,10 @@ class AuthService extends GetxService {
 
       print('🔍 Role: ${loginResponse.role}');
       print('🔍 RedirectEndpoint: ${loginResponse.redirectEndpoint}');
+      print('🔍 Real ID: ${loginResponse.realId}');
 
       // Extraire l'ID du redirectEndpoint s'il est disponible, sinon utiliser userId
-      if (loginResponse.redirectEndpoint.isNotEmpty) {
-        final parts = loginResponse.redirectEndpoint.split('/');
-        if (parts.isNotEmpty) {
-          final extractedId = parts.lastWhere(
-            (part) => part.isNotEmpty,
-            orElse: () => '',
-          );
-          if (extractedId.isNotEmpty) {
-            id = extractedId;
-            print('🔍 ID extrait du redirectEndpoint: $id');
-          } else {
-            id = loginResponse.userId;
-            print('🔍 Utilisation de userId (redirectEndpoint mal formé): $id');
-          }
-        } else {
-          id = loginResponse.userId;
-          print('🔍 Utilisation de userId (redirectEndpoint vide): $id');
-        }
-      } else {
-        id = loginResponse.userId;
-        print('🔍 Utilisation de userId (pas de redirectEndpoint): $id');
-      }
+      id = loginResponse.realId;
 
       if (loginResponse.role == 'VIGILE') {
         print('🔍 Appel API pour le vigile avec ID: $id');
@@ -82,6 +62,9 @@ class AuthService extends GetxService {
       } else {
         try {
           user = Etudiant.fromJson(userResponse['results']);
+          print('XXXXXXXXXXX 🔍 Utilisateur sauvegardé dans le stockage local --> ${user.toJson()}');
+          print('XXXXXXXXXXX 🔍 Utilisateur sauvegardé dans le stockage local (no transform) --> ${userResponse['results']}');
+
           print('🔍 Étudiant créé avec succès: ${user.nomComplet}');
         } catch (e) {
           print('🔍 Erreur lors de la création de l\'\u00e9tudiant: $e');

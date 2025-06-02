@@ -43,7 +43,7 @@ class VigileProfileView extends GetView<AuthController> {
         email: userData['email'] ?? '',
         role: 'Vigile',
         onLogout: controller.logout,
-        isLoading: false,
+        isLoading: controller.isLoading.value,
       );
     });
   }

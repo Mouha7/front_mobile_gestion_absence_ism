@@ -24,7 +24,7 @@ class LoginView extends GetView<AuthController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo_ism.jpg', height: 300),
+              Image.asset('assets/images/logo_ism.png', height: 300),
               const SizedBox(height: 30),
               TextField(
                 controller: emailController,

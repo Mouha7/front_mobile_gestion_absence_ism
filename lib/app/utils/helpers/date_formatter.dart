@@ -14,15 +14,28 @@ class DateFormatter {
   }
 
   /// Formate l'heure (HH:MM) pour l'affichage
-  static String formatTime(String time) {
+  static String formatTime(String dateTimeString) {
     try {
-      // S'assurer que le format est HH:MM
-      if (time.split(':').length >= 2) {
-        return time;
+      if (dateTimeString.isEmpty) return 'Non spécifiée';
+
+      // Format ISO avec T
+      if (dateTimeString.contains('T')) {
+        final parts = dateTimeString.split('T');
+        if (parts.length > 1) {
+          // Prendre juste HH:MM de la partie heure
+          return parts[1].substring(0, 5);
+        }
       }
-      return time;
+
+      // Format avec :
+      if (dateTimeString.contains(':')) {
+        return dateTimeString.split(':').take(2).join(':');
+      }
+
+      return dateTimeString;
     } catch (e) {
-      return time;
+      print('Erreur dans formatTime: $e');
+      return 'Format invalide';
     }
   }
 
@@ -44,22 +57,23 @@ class DateFormatter {
       // Convertir les heures en minutes
       List<String> startParts = startTime.split(':');
       List<String> endParts = endTime.split(':');
-      
-      int startMinutes = int.parse(startParts[0]) * 60 + int.parse(startParts[1]);
+
+      int startMinutes =
+          int.parse(startParts[0]) * 60 + int.parse(startParts[1]);
       int endMinutes = int.parse(endParts[0]) * 60 + int.parse(endParts[1]);
-      
+
       // Calculer la différence
       int differenceMinutes = endMinutes - startMinutes;
-      
+
       if (differenceMinutes < 0) {
         // Si l'heure de fin est avant l'heure de début (cas particulier)
         differenceMinutes = 0;
       }
-      
+
       // Format de la durée en H:MM
       int hours = differenceMinutes ~/ 60;
       int minutes = differenceMinutes % 60;
-      
+
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     } catch (e) {
       return '00:00';
@@ -92,7 +106,13 @@ class DateFormatter {
     try {
       final DateTime date = DateTime.parse(isoDate);
       final List<String> days = [
-        'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
+        'Lundi',
+        'Mardi',
+        'Mercredi',
+        'Jeudi',
+        'Vendredi',
+        'Samedi',
+        'Dimanche',
       ];
       // weekday retourne 1 pour lundi, 2 pour mardi, etc.
       return days[date.weekday - 1];

@@ -47,14 +47,14 @@ class Etudiant extends Utilisateur {
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = super.toJson();
+    data['nom'] = nom;
+    data['prenom'] = prenom;
     data['matricule'] = matricule;
     data['filiere'] = filiere;
-    data['niveau'] = niveau;
+    data['email'] = email;
     data['classe'] = classe;
+    data['niveau'] = niveau;
     data['absences'] = absences.map((e) => e.toJson()).toList();
-    data['niveau'] = niveau;
-    data['classe'] = classe;
-    data['absences'] = absences.map((a) => a.toJson()).toList();
     return data;
   }
 }

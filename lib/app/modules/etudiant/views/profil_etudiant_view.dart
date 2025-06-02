@@ -43,7 +43,7 @@ class ProfilEtudiantView extends GetView<AuthController> {
         email: userData['email'] ?? '',
         role: 'Étudiant',
         onLogout: controller.logout,
-        isLoading: false,
+        isLoading: controller.isLoading.value,
       );
     });
   }

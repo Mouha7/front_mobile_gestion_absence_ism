@@ -41,21 +41,18 @@ class HistoriqueService extends GetxService {
           final coursData = item['cours'] ?? {};
           return {
             'id': item['id'],
-            'matiere':
-                coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
+            'matiere': item['nomCours'] ?? coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
             'date': DateFormatter.formatDate(item['heurePointage'] ?? ''),
-            'duree':
-                item['type'] == 'RETARD'
-                    ? '${item['minutesRetard'] ?? 0} min'
-                    : 'Journée entière',
-            'professeur': coursData['enseignant'] ?? 'Non spécifié',
+            'duree': item['type'] == 'RETARD'
+                ? '${item['minutesRetard'] ?? 0} min'
+                : 'Journée entière',
+            'professeur': item['professeur'] ?? coursData['enseignant'] ?? 'Non spécifié',
             'justifie': item['justification'] ?? false,
             'type': item['type'] ?? 'ABSENCE',
             'etat': item['justification'] ? 'Justifiée' : 'Non justifiée',
-            'salle': coursData['salle'] ?? 'Non spécifiée',
-            'heureDebut': coursData['heureDebut'] ?? '',
-            'heureFin': coursData['heureFin'] ?? '',
-            'classeNom': coursData['classeNom'] ?? '',
+            'salle': item['salle'] ?? coursData['salle'] ?? 'Non spécifiée',
+            'heureDebut': item['heureDebut'] ?? DateFormatter.formatTime(coursData['heureDebut']) ?? '',
+            'heurePointage': item['heurePointage'] ?? '',
           };
         }).toList();
       } else {
@@ -95,20 +92,16 @@ class HistoriqueService extends GetxService {
           final coursData = item['cours'] ?? {};
           return {
             'id': item['id'],
-            'matiere':
-                coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
+            'matiere': coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
             'date': DateFormatter.formatDate(item['heurePointage'] ?? ''),
             'duree': '${item['minutesRetard'] ?? 0} min',
-            'professeur': coursData['enseignant'] ?? 'Non spécifié',
-            'enseignant': coursData['enseignant'] ?? 'Non spécifié',
+            'professeur': item['professeur'] ?? coursData['enseignant'] ?? 'Non spécifié',
             'justifie': item['justification'] ?? false,
-            'type': 'RETARD',
-            'etat': item['justification'] ? 'Justifié' : 'Non justifié',
-            'salle': coursData['salle'] ?? 'Non spécifiée',
-            'heureArrivee': DateFormatter.formatTime(
-              item['heurePointage'] ?? '',
-            ),
-            'heureDebut': coursData['heureDebut'] ?? '',
+            'type': item['type'] ?? 'RETARD',
+            'etat': (item['justification'] == true) ? 'Justifié' : 'Non justifié',
+            'salle': item['salle'] ?? coursData['salle'] ?? 'Non spécifiée',
+            'heureArrivee': DateFormatter.formatTime(item['heurePointage'] ?? ''),
+            'heureDebut': DateFormatter.formatTime(item['heureDebut']),
           };
         }).toList();
       } else {
