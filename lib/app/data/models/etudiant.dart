@@ -51,6 +51,9 @@ class Etudiant extends Utilisateur {
     data['filiere'] = filiere;
     data['niveau'] = niveau;
     data['classe'] = classe;
+    data['absences'] = absences.map((e) => e.toJson()).toList();
+    data['niveau'] = niveau;
+    data['classe'] = classe;
     data['absences'] = absences.map((a) => a.toJson()).toList();
     return data;
   }

@@ -64,7 +64,7 @@ class EtudiantAbsencesView extends GetView<HistoriqueController> {
                   // Ajouter un préfixe d'icône pour montrer que le filtrage est actif
                   prefixIcon:
                       controller.isDateFilterActive.value
-                          ? Icon(
+                          ? const Icon(
                             Icons.filter_list,
                             color: AppTheme.primaryColor,
                           )
@@ -330,23 +330,45 @@ class EtudiantAbsencesView extends GetView<HistoriqueController> {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primaryColor.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(width: 12),
           SizedBox(
-            width: 100,
+            width: 90,
             child: Text(
               '$label:',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[700],
+                fontSize: 13,
               ),
             ),
           ),
           Expanded(
-            child: Text(value, style: const TextStyle(color: Colors.black87)),
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

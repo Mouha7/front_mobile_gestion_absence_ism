@@ -30,130 +30,25 @@ class HistoriqueController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Simulation d'un délai réseau
-      await Future.delayed(const Duration(seconds: 1));
+      // Récupération des absences depuis le service
+      final absencesData = await _historiqueService.getAbsences();
+      absences.assignAll(absencesData);
 
-      // Vérification de la connexion au serveur (à remplacer par une vraie vérification)
-      isServerConnected.value = await _checkServerConnection();
+      // Récupération des retards depuis le service
+      final retardsData = await _historiqueService.getRetards();
+      retards.assignAll(retardsData);
 
-      if (isServerConnected.value) {
-        // Récupération des absences et retards (mode mock)
-        await _fetchMockData();
+      print(
+        '✅ Données chargées avec succès: ${absences.length} absences, ${retards.length} retards',
+      );
 
-        // Appliquer les filtres actuels
-        _applyFilters();
-      } else {
-        // Afficher un message d'erreur si le serveur n'est pas disponible
-        SnackbarUtils.showError(
-          'Erreur de connexion',
-          'Impossible de se connecter au serveur. Vérifiez votre connexion internet.',
-        );
-      }
+      // Appliquer les filtres actuels
+      _applyFilters();
     } catch (e) {
       print('❌ Erreur lors du rafraîchissement des données: $e');
       isServerConnected.value = false;
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  // Méthode privée pour vérifier la connexion au serveur
-  Future<bool> _checkServerConnection() async {
-    try {
-      // TODO: Implémenter la vérification de connexion au serveur
-      // Par exemple, faire une requête ping vers le serveur
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Pour démonstration, on retourne true (connecté)
-      return true;
-    } catch (e) {
-      print('Erreur de connexion au serveur: $e');
-      return false;
-    }
-  }
-
-  // Méthode privée pour récupérer les données fictives
-  Future<void> _fetchMockData() async {
-    try {
-      // Données fictives pour les absences
-      final mockAbsences = [
-        {
-          'id': 1,
-          'matiere': 'Programmation Mobile Flutter',
-          'date': '31 Mai 2025',
-          'duree': 'Journée entière',
-          'professeur': 'Dr. Ndiaye',
-          'justifie': false,
-          'type': 'Absence',
-          'etat': 'Non justifiée',
-          'salle': 'Salle 201',
-        },
-        {
-          'id': 2,
-          'matiere': 'Intelligence Artificielle',
-          'date': '30 Mai 2025',
-          'duree': 'Matin',
-          'professeur': 'Prof. Diop',
-          'justifie': true,
-          'motifJustification': 'Rendez-vous médical',
-          'dateJustification': '30 Mai 2025',
-          'type': 'Absence',
-          'etat': 'Justifiée',
-          'salle': 'Labo Info',
-        },
-        {
-          'id': 3,
-          'matiere': 'Sécurité Informatique',
-          'date': '29 Mai 2025',
-          'duree': 'Après-midi',
-          'professeur': 'Dr. Sow',
-          'justifie': false,
-          'type': 'Absence',
-          'etat': 'En attente',
-          'salle': 'Amphi A',
-        },
-      ];
-
-      // Données fictives pour les retards
-      final mockRetards = [
-        {
-          'id': 101,
-          'matiere': 'Architecture Cloud',
-          'date': '31 Mai 2025',
-          'duree': '15 min',
-          'professeur': 'M. Fall',
-          'type': 'Retard',
-          'etat': 'Non justifié',
-          'salle': 'Salle 305',
-          'heureArrivee': '08:15',
-          'heureDebut': '08:00',
-        },
-        {
-          'id': 102,
-          'matiere': 'DevOps & CI/CD',
-          'date': '30 Mai 2025',
-          'duree': '10 min',
-          'professeur': 'Mme Ba',
-          'type': 'Retard',
-          'etat': 'Justifié',
-          'salle': 'Labo DevOps',
-          'heureArrivee': '14:10',
-          'heureDebut': '14:00',
-          'motifJustification': 'Problème de transport',
-          'dateJustification': '30 Mai 2025',
-        },
-      ];
-
-      absences.assignAll(mockAbsences);
-      retards.assignAll(mockRetards);
-
-      print(
-        '✅ Données mock chargées avec succès: ${absences.length} absences, ${retards.length} retards',
-      );
-    } catch (e) {
-      print('❌ Erreur lors du chargement des données mock: $e');
-      absences.clear();
-      retards.clear();
     }
   }
 
@@ -227,45 +122,28 @@ class HistoriqueController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Simulation d'un délai réseau
-      await Future.delayed(const Duration(seconds: 1));
+      // Appeler le service pour soumettre la justification
+      final success = await _historiqueService.soumettreJustification(
+        absenceId,
+        motif,
+        pieceJointe,
+      );
 
-      // Vérification de la connexion au serveur
-      isServerConnected.value = await _checkServerConnection();
+      if (success) {
+        print(
+          '✅ Justification soumise avec succès - Absence ID: $absenceId, Motif: $motif',
+        );
 
-      if (!isServerConnected.value) {
+        // Rafraîchir les données pour mettre à jour l'UI
+        await refreshData();
+        return true;
+      } else {
         SnackbarUtils.showError(
-          'Erreur de connexion',
-          'Impossible de soumettre la justification. Vérifiez votre connexion internet.',
+          'Erreur',
+          'Impossible de soumettre la justification. Veuillez réessayer.',
         );
         return false;
       }
-
-      // Simuler une soumission réussie (dans un cas réel, on appellerait le service)
-      print(
-        '✅ Justification soumise avec succès - Absence ID: $absenceId, Motif: $motif',
-      );
-
-      // Mise à jour locale des données pour refléter la justification
-      final index = absences.indexWhere(
-        (absence) => absence['id'] == absenceId,
-      );
-      if (index != -1) {
-        final updatedAbsence = Map<String, dynamic>.from(absences[index]);
-        updatedAbsence['justifie'] = true;
-        updatedAbsence['motifJustification'] = motif;
-        updatedAbsence['pieceJointe'] = pieceJointe;
-        updatedAbsence['dateJustification'] = DateTime.now()
-            .toString()
-            .substring(0, 10);
-
-        absences[index] = updatedAbsence;
-
-        // Appliquer les filtres pour mettre à jour la liste filtrée
-        _applyFilters();
-      }
-
-      return true;
     } catch (e) {
       print('❌ Erreur lors de la soumission de la justification: $e');
       return false;
@@ -279,22 +157,18 @@ class HistoriqueController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Simulation d'un délai réseau
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Chercher l'absence dans la liste locale
-      final absence = absences.firstWhere(
-        (absence) => absence['id'] == absenceId,
-        orElse: () => <String, dynamic>{},
+      // Appeler le service pour récupérer les détails de l'absence
+      final absenceDetails = await _historiqueService.getAbsenceDetails(
+        absenceId,
       );
 
-      if (absence.isEmpty) {
+      if (absenceDetails == null) {
         print('❌ Absence non trouvée: ID $absenceId');
         return null;
       }
 
       print('✅ Détails de l\'absence récupérés: ID $absenceId');
-      return Map<String, dynamic>.from(absence);
+      return absenceDetails;
     } catch (e) {
       print('❌ Erreur lors de la récupération des détails: $e');
       return null;

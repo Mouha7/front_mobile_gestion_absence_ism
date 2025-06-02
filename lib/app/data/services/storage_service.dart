@@ -37,6 +37,7 @@ class StorageService extends GetxService {
   // Récupérer les données utilisateur
   Map<String, dynamic>? getUser() {
     final userStr = _prefs.getString('user');
+    print('Récupération des données utilisateur dans storage : $userStr');
     if (userStr != null && userStr.isNotEmpty) {
       try {
         // Conversion de la chaîne JSON en Map

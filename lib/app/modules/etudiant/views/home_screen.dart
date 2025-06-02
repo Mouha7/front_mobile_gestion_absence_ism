@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
+import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/date_formatter.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart';
@@ -160,11 +161,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
       children: [
         const Text(
           '5 derniers retards',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 18),
         ),
         ElevatedButton(
           onPressed: () {
@@ -186,6 +183,42 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
   }
 
   Widget _buildRetardsList(List<Map<String, dynamic>> retards) {
+    // Si la liste est vide, afficher un message approprié
+    if (retards.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.timer_off, size: 60, color: Colors.grey),
+              const SizedBox(height: 16),
+              Text(
+                'Aucun retard récent',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Félicitations! Vous n\'avez pas eu de retards récemment.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -214,37 +247,167 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                   color: const Color(0xFF452917),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.home, color: Colors.white),
+                child: const Icon(Icons.menu_book, color: Colors.white),
               ),
               title: Text(
-                retard['matiere']!,
+                retard['matiere'] ?? 'Matière inconnue',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
               ),
-              subtitle: Text(
-                '${retard['date']} - ${retard['duree']}',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    retard['enseignant'] ?? 'RETARD',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.red,
-                    ),
+                    '${DateFormatter.formatDate(retard['date'])} - ${retard['duree']}',
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_ios, size: 14),
+                  if (retard['heureArrivee'] != null &&
+                      retard['heureDebut'] != null)
+                    Text(
+                      'Arrivé à ${retard['heureArrivee']} (début à ${retard['heureDebut']})',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
                 ],
               ),
+              trailing: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'RETARD',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.red,
+                      ),
+                    ),
+                    Icon(Icons.arrow_drop_down, color: Colors.red)
+                  ]
+                ),
+              ),
+              onTap: () {
+                // Afficher les détails du retard
+                Get.dialog(
+                  Dialog(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Détails du retard',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildDetailRow(
+                            'Matière',
+                            retard['matiere'] ?? 'Non spécifiée',
+                          ),
+                          _buildDetailRow(
+                            'Date',
+                            DateFormatter.formatDate(retard['date']),
+                          ),
+                          _buildDetailRow(
+                            'Durée',
+                            retard['duree'] ?? 'Non spécifiée',
+                          ),
+                          _buildDetailRow(
+                            'Professeur',
+                            retard['professeur'] ?? 'Non spécifié',
+                          ),
+                          _buildDetailRow(
+                            'Salle',
+                            retard['salle'] ?? 'Non spécifiée',
+                          ),
+                          _buildDetailRow(
+                            'Heure de début',
+                            retard['heureDebut'] ?? 'Non spécifiée',
+                          ),
+                          _buildDetailRow(
+                            'Heure d\'arrivée',
+                            retard['heureArrivee'] ?? 'Non spécifiée',
+                          ),
+                          const SizedBox(height: 16),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => Get.back(),
+                              child: const Text('Fermer'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.primaryColor.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 90,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

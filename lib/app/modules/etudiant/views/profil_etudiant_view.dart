@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/auth_controller.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/shared/profile_screen.dart';
+import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:get/get.dart';
 
 class ProfilEtudiantView extends GetView<AuthController> {
@@ -18,7 +19,22 @@ class ProfilEtudiantView extends GetView<AuthController> {
       print('🔍 ProfilEtudiantView - userData: ${controller.userData}');
 
       if (userData == null) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return Scaffold(
+          backgroundColor: AppTheme.primaryColor,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                SizedBox(height: 16),
+                Text(
+                  'Chargement du profil...',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ],
+            ),
+          ),
+        );
       }
 
       return ProfilMenu(

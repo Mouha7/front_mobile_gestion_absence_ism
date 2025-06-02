@@ -46,6 +46,7 @@ class Utilisateur {
       'prenom': prenom,
       'email': email,
       'role': role.toString().split('.').last,
+      'absences': absences.map((e) => e.toJson()).toList(),
     };
   }
 

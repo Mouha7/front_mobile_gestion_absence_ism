@@ -94,6 +94,7 @@ class AuthService extends GetxService {
       await _storageService.saveUser(user.toJson());
 
       Map<String, dynamic> returnData = {
+        "id": user.id,
         "nom": user.nom,
         "prenom": user.prenom,
         "email": user.email,
@@ -134,18 +135,8 @@ class AuthService extends GetxService {
     }
 
     try {
-      // Déterminer l'endpoint en fonction du rôle stocké
-      String endpoint = 'utilisateur/profile';
-      final userRole = cachedUser?['role'];
-
-      if (userRole == 'ETUDIANT') {
-        endpoint = 'etudiant/profile';
-      } else if (userRole == 'VIGILE') {
-        endpoint = 'vigile/profile';
-      }
-
       // Récupérer le profil de l'utilisateur connecté avec le token
-      final response = await _apiService.get(endpoint, requireAuth: true);
+      final response = await _apiService.get('', requireAuth: true);
 
       if (response != null) {
         final user = response;
