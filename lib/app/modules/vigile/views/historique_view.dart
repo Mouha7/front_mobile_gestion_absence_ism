@@ -258,112 +258,241 @@ class VigileHistoriqueView extends GetView<VigileController> {
   }
 
   Widget _buildHistoriqueCard(Map<String, dynamic> item) {
-    // Déterminer la couleur de l'icône en fonction de l'action
-    Color iconColor;
-    IconData iconData;
-
-    if (item['action'].toString().contains('entrée')) {
-      iconColor = Colors.green;
-      iconData = Icons.login;
-    } else if (item['action'].toString().contains('sortie')) {
-      iconColor = Colors.orange;
-      iconData = Icons.logout;
-    } else if (item['action'].toString().contains('retard')) {
-      iconColor = Colors.amber;
-      iconData = Icons.watch_later;
-    } else if (item['action'].toString().contains('absence')) {
-      iconColor = Colors.red;
-      iconData = Icons.person_off;
-    } else if (item['action'].toString().contains('badge')) {
-      iconColor = Colors.blue;
-      iconData = Icons.badge;
+    // Déterminer le type d'événement et ses attributs visuels
+    Color cardBorderColor;
+    Color badgeColor;
+    IconData statusIcon;
+    String statusText;
+    if (item['typeAbsence'] == "PRESENT") {
+      // Présence normale
+      cardBorderColor = AppTheme.secondaryColor;
+      badgeColor = Colors.green.shade300;
+      statusIcon = Icons.check_circle_outline;
+      statusText = "Présence";
+    } else if (item['typeAbsence'] == "RETARD") {
+      // Retard
+      cardBorderColor = AppTheme.secondaryColor;
+      badgeColor = Colors.amber.shade300;
+      statusIcon = Icons.watch_later_outlined;
+      statusText = "Retard ${item['minutesRetard']} min";
     } else {
-      iconColor = Colors.purple;
-      iconData = Icons.event_note;
+      // Absence
+      cardBorderColor = AppTheme.secondaryColor;
+      badgeColor = Colors.red.shade300;
+      statusIcon = Icons.person_off_outlined;
+      statusText = "Absence";
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: cardBorderColor.withOpacity(0.5), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // En-tête coloré
+          Container(
+            decoration: BoxDecoration(
+              color: cardBorderColor.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
               children: [
+                // Badge de statut
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
                   ),
-                  child: Icon(iconData, color: iconColor, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  decoration: BoxDecoration(
+                    color: badgeColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      Icon(statusIcon, color: cardBorderColor, size: 16),
+                      const SizedBox(width: 4),
                       Text(
-                        item['action'],
-                        style: const TextStyle(
+                        statusText,
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        item['etudiant'],
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
+                          color: cardBorderColor,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Text(
-                  item['heure'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                const Spacer(),
+                // Heure d'arrivée
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.black54,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        item['heureArrivee'] ?? '--:--',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+
+          // Contenu principal
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Classe: ${item['classe']}',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                // Information sur l'étudiant
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.grey.shade200,
+                      radius: 20,
+                      child: Text(
+                        _getInitials(item['etudiantNom'] ?? '??'),
+                        style: TextStyle(
+                          color: cardBorderColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item['etudiantNom'] ?? 'Étudiant inconnu',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.badge_outlined,
+                                size: 14,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                item['matricule'] ?? 'Non spécifié',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  _formatDate(item['date']),
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+
+                const Divider(height: 24),
+
+                // Détails sur le cours
+                Row(
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.menu_book_outlined,
+                            size: 16,
+                            color: Colors.indigo,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item['coursNom'] ?? 'Non spécifié',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.event_outlined,
+                          size: 16,
+                          color: Colors.teal,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(item['date'] ?? ''),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
-            if (item['commentaire'].toString().isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Commentaire: ${item['commentaire']}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  // fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
+  // Méthode utilitaire pour obtenir les initiales d'un nom
+  String _getInitials(String name) {
+    if (name.isEmpty) return '?';
+
+    final nameParts = name.split(' ');
+    if (nameParts.length > 1) {
+      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
+    }
+
+    return name[0].toUpperCase();
+  }
+
   String _formatDate(String dateStr) {
+    if (dateStr.isEmpty) return '';
+
     final dateParts = dateStr.split('-');
+    if (dateParts.length < 3) return dateStr;
+
     return '${dateParts[2]}/${dateParts[1]}/${dateParts[0]}';
   }
 

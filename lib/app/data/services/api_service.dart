@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import '../services/storage_service.dart';
+import '../../routes/app_pages.dart';
 
 class ApiService extends GetxService {
   // URL de l'API backend Spring Boot sur Render
@@ -23,26 +24,27 @@ class ApiService extends GetxService {
     print('API Service: URL de base mise à jour -> $baseUrl');
   }
 
-  Future<Map<String, String>> _getHeaders({bool requireAuth = false}) async {
+  Future<Map<String, String>> _getHeaders() async {
     // Headers de base pour l'API
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
 
-    // Ajoute l'authentification uniquement si demandé explicitement
-    if (requireAuth) {
-      final token = _storageService.token;
-      if (token != null) {
-        headers['Authorization'] = 'Bearer $token';
-      }
+    // Ajouter systématiquement le token d'authentification s'il existe
+    final token = _storageService.token;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+      print('🔐 Token d\'authentification ajouté aux en-têtes');
+    } else {
+      print('⚠️ Aucun token d\'authentification disponible');
     }
 
     return headers;
   }
 
-  Future<dynamic> get(String endpoint, {bool requireAuth = false}) async {
-    final headers = await _getHeaders(requireAuth: requireAuth);
+  Future<dynamic> get(String endpoint) async {
+    final headers = await _getHeaders();
 
     // Nettoie l'endpoint pour éviter les problèmes de double slash
     if (endpoint.startsWith('/')) {
@@ -63,16 +65,13 @@ class ApiService extends GetxService {
       return _processResponse(response);
     } catch (e) {
       print('❌ Erreur GET: $e');
+      _handleApiError(e);
       throw Exception('Erreur de connexion: $e');
     }
   }
 
-  Future<dynamic> post(
-    String endpoint,
-    dynamic data, {
-    bool requireAuth = false,
-  }) async {
-    final headers = await _getHeaders(requireAuth: requireAuth);
+  Future<dynamic> post(String endpoint, dynamic data) async {
+    final headers = await _getHeaders();
 
     // Nettoie l'endpoint pour éviter les problèmes de double slash
     if (endpoint.startsWith('/')) {
@@ -94,16 +93,13 @@ class ApiService extends GetxService {
       return _processResponse(response);
     } catch (e) {
       print('❌ Erreur POST: $e');
+      _handleApiError(e);
       throw Exception('Erreur de connexion: $e');
     }
   }
 
-  Future<dynamic> put(
-    String endpoint,
-    dynamic data, {
-    bool requireAuth = false,
-  }) async {
-    final headers = await _getHeaders(requireAuth: requireAuth);
+  Future<dynamic> put(String endpoint, dynamic data) async {
+    final headers = await _getHeaders();
 
     // Nettoie l'endpoint pour éviter les problèmes de double slash
     if (endpoint.startsWith('/')) {
@@ -125,12 +121,13 @@ class ApiService extends GetxService {
       return _processResponse(response);
     } catch (e) {
       print('❌ Erreur PUT: $e');
+      _handleApiError(e);
       throw Exception('Erreur de connexion: $e');
     }
   }
 
-  Future<dynamic> delete(String endpoint, {bool requireAuth = false}) async {
-    final headers = await _getHeaders(requireAuth: requireAuth);
+  Future<dynamic> delete(String endpoint) async {
+    final headers = await _getHeaders();
 
     // Nettoie l'endpoint pour éviter les problèmes de double slash
     if (endpoint.startsWith('/')) {
@@ -151,6 +148,7 @@ class ApiService extends GetxService {
       return _processResponse(response);
     } catch (e) {
       print('❌ Erreur DELETE: $e');
+      _handleApiError(e);
       throw Exception('Erreur de connexion: $e');
     }
   }
@@ -181,6 +179,8 @@ class ApiService extends GetxService {
         throw Exception('Requête incorrecte: ${response.body}');
       case 401:
       case 403:
+        // Si non autorisé, déconnecter l'utilisateur et rediriger vers la page de connexion
+        _handleUnauthorized();
         throw Exception('Non autorisé: ${response.body}');
       case 404:
         throw Exception('Ressource non trouvée: ${response.body}');
@@ -192,11 +192,44 @@ class ApiService extends GetxService {
     }
   }
 
+  // Gestion des erreurs d'API
+  void _handleApiError(dynamic error) {
+    String errorMsg = error.toString().toLowerCase();
+
+    // Si l'erreur est liée à l'authentification, déconnecter l'utilisateur
+    if (errorMsg.contains('401') ||
+        errorMsg.contains('403') ||
+        errorMsg.contains('non autorisé') ||
+        errorMsg.contains('unauthorized')) {
+      _handleUnauthorized();
+    }
+  }
+
+  // Gestion des erreurs d'authentification
+  void _handleUnauthorized() {
+    // Déconnecter l'utilisateur et rediriger vers la page de connexion
+    print(
+      '🔒 Session expirée ou non autorisée, redirection vers la page de connexion',
+    );
+    _storageService.logout();
+
+    // Utiliser Future.delayed pour éviter des problèmes avec le build en cours
+    Future.delayed(Duration.zero, () {
+      Get.offAllNamed(Routes.LOGIN);
+      Get.snackbar(
+        'Session expirée',
+        'Veuillez vous reconnecter',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    });
+  }
+
   // Méthode pour vérifier si le serveur est disponible
   Future<bool> isServerAvailable() async {
     try {
+      // Utilise la racine de l'API au lieu de /status qui n'existe pas
       final response = await http
-          .get(Uri.parse('$baseUrl/health'))
+          .get(Uri.parse(baseUrl))
           .timeout(const Duration(seconds: 5));
 
       return response.statusCode >= 200 && response.statusCode < 300;

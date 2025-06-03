@@ -29,12 +29,13 @@ class AuthService extends GetxService {
       print('🔍 Real ID: ${loginResponse.realId}');
 
       // Extraire l'ID du redirectEndpoint s'il est disponible, sinon utiliser userId
-      id = loginResponse.realId;
 
       if (loginResponse.role == 'VIGILE') {
+        id = loginResponse.userId;
         print('🔍 Appel API pour le vigile avec ID: $id');
         userResponse = await _apiService.get('vigile/$id');
       } else if (loginResponse.role == 'ETUDIANT') {
+        id = loginResponse.realId;
         print('🔍 Appel API pour l\'\u00e9tudiant avec ID: $id');
         userResponse = await _apiService.get('etudiant/$id');
       } else {
@@ -62,9 +63,6 @@ class AuthService extends GetxService {
       } else {
         try {
           user = Etudiant.fromJson(userResponse['results']);
-          print('XXXXXXXXXXX 🔍 Utilisateur sauvegardé dans le stockage local --> ${user.toJson()}');
-          print('XXXXXXXXXXX 🔍 Utilisateur sauvegardé dans le stockage local (no transform) --> ${userResponse['results']}');
-
           print('🔍 Étudiant créé avec succès: ${user.nomComplet}');
         } catch (e) {
           print('🔍 Erreur lors de la création de l\'\u00e9tudiant: $e');
@@ -74,18 +72,20 @@ class AuthService extends GetxService {
       }
 
       print('🔍 Utilisateur récupéré: ${user.toJson()}');
-      await _storageService.saveUser(user.toJson());
 
+      // Créer les données à sauvegarder
       Map<String, dynamic> returnData = {
         "id": user.id,
         "nom": user.nom,
         "prenom": user.prenom,
-        "email": user.email,
+        "email": user.email, // S'assurer que l'email est bien présent ici
         "role": loginResponse.role,
       };
 
+      // Ajouter les données spécifiques au rôle
       if (loginResponse.role == 'VIGILE') {
         returnData["badge"] = (user as Vigile).badge;
+        returnData["realId"] = loginResponse.realId;
       } else if (loginResponse.role == 'ETUDIANT') {
         Etudiant etudiant = user as Etudiant;
         returnData["matricule"] = etudiant.matricule;
@@ -93,6 +93,9 @@ class AuthService extends GetxService {
         returnData["absences"] =
             etudiant.absences.map((a) => a.toJson()).toList();
       }
+
+      // Sauvegarder le même objet qu'on retourne
+      await _storageService.saveUser(returnData);
 
       return returnData;
     } catch (e) {
@@ -119,7 +122,7 @@ class AuthService extends GetxService {
 
     try {
       // Récupérer le profil de l'utilisateur connecté avec le token
-      final response = await _apiService.get('', requireAuth: true);
+      final response = await _apiService.get('');
 
       if (response != null) {
         final user = response;

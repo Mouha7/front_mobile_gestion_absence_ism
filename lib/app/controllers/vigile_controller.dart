@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../utils/sound_manager.dart';
+import '../data/services/vigile_service.dart';
+import '../data/services/storage_service.dart';
 import '../data/models/etudiant.dart';
 
 class VigileController extends GetxController {
   final TextEditingController matriculeController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   final RxBool isScanning = false.obs;
-  final Rx<Etudiant?> etudiantScanne = Rx<Etudiant?>(null);
   final validationVisible = false.obs;
   final RxBool validationSuccess = false.obs;
+
+  // Services nécessaires
+  final VigileService _vigileService = Get.find<VigileService>();
+  final StorageService _storageService = Get.find<StorageService>();
 
   // Ajout pour la gestion de l'historique
   final RxBool isLoading = false.obs;
@@ -20,6 +25,15 @@ class VigileController extends GetxController {
       <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> filteredHistorique =
       <Map<String, dynamic>>[].obs;
+  final Rx<Etudiant?> etudiantScanne = Rx<Etudiant?>(null);
+
+  // Ajouter une propriété pour stocker les informations de pointage
+  final Rx<Map<String, dynamic>?> pointageInfo = Rx<Map<String, dynamic>?>(
+    null,
+  );
+
+  // Ajoutez cette propriété pour le verrou
+  final RxBool isProcessingPointage = false.obs;
 
   @override
   void onInit() {
@@ -46,194 +60,181 @@ class VigileController extends GetxController {
       await SoundManager.playError();
     }
 
+    // Afficher l'overlay avec Get.dialog pour qu'il prenne tout l'écran
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: const Color(0xFF1F1F1F),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 160,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isValid ? const Color(0xFF4CAF50) : Colors.red,
+                  ),
+                  child: Icon(
+                    isValid ? Icons.check : Icons.close,
+                    size: 100,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (etudiantScanne.value != null) ...[
+                  // Ajouter ici les informations de l'étudiant
+                ] else ...[
+                  Text(
+                    isValid ? 'Pointage réussi' : 'Pointage échoué',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+      barrierColor: Colors.transparent,
+      barrierDismissible: false,
+    );
+
     // Attendre 2 secondes avant de fermer l'écran de validation
     await Future.delayed(const Duration(seconds: 2));
 
-    // Cacher l'écran de validation
-    validationVisible.value = false;
+    // Fermer le dialog
+    Get.back();
+
+    // Réinitialiser etudiantScanne après un délai pour permettre une transition fluide
     if (!isValid) {
       etudiantScanne.value = null;
     }
+
+    validationVisible.value = false;
   }
 
-  Future<void> traiterCodeQR(String code) async {
-    if (isScanning.value) return;
-    isScanning.value = true;
+  // Méthode commune pour les deux modes de pointage
+  Future<void> effectuerPointage(
+    String matricule, {
+    bool fromQR = false,
+  }) async {
+    // Empêcher les pointages multiples en même temps
+    if (isProcessingPointage.value) return;
+    isProcessingPointage.value = true;
 
     try {
-      // Simuler une vérification du QR code
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Activer scanning uniquement si c'est un QR
+      if (fromQR) isScanning.value = true;
 
-      if (code == 'ETUDIANT-123456') {
-        etudiantScanne.value = Etudiant(
-          id: '1',
-          nom: 'Diallo',
-          prenom: 'Amadou',
-          email: 'amadou.diallo@ism.edu.sn',
-          matricule: code,
-          filiere: 'GLSI',
-          niveau: 'L3',
-          classe: 'L3 GLSI A',
+      // Faire le pointage avec l'API
+      final pointageResult = await _fairePointage(matricule);
+
+      // Afficher l'écran de validation approprié
+      await _showValidationScreen(pointageResult != null);
+
+      if (pointageResult != null) {
+        // Rafraîchir l'historique pour voir le nouveau pointage
+        Get.snackbar(
+          'Succès',
+          'Pointage enregistré avec succès',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
         );
-        await _showValidationScreen(true);
-      } else {
-        await _showValidationScreen(false);
       }
     } catch (e) {
-      print('Erreur lors du traitement du QR code: $e');
+      print('❌ Erreur lors du pointage: $e');
       await _showValidationScreen(false);
     } finally {
-      isScanning.value = false;
+      isProcessingPointage.value = false;
+      if (fromQR) isScanning.value = false;
+      matriculeController.clear();
+      await refreshData();
     }
+  }
+
+  // Remplacez les méthodes existantes par des appels à la méthode commune
+  Future<void> traiterCodeQR(String code) async {
+    await effectuerPointage(code, fromQR: true);
   }
 
   Future<void> verifierMatricule(String matricule) async {
     if (matricule.isEmpty) return;
+    await effectuerPointage(matricule);
+  }
 
+  // Méthode pour faire un pointage via l'API
+  Future<Map<String, dynamic>?> _fairePointage(String matriculeEtudiant) async {
     try {
-      // Simuler une vérification du matricule
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (matricule == 'ETUDIANT-123456') {
-        etudiantScanne.value = Etudiant(
-          id: '1',
-          nom: 'Diallo',
-          prenom: 'Amadou',
-          email: 'amadou.diallo@ism.edu.sn',
-          matricule: matricule,
-          filiere: 'GLSI',
-          niveau: 'L3',
-          classe: 'L3 GLSI A',
+      // Récupérer le vigileId depuis le stockage
+      final vigile = _storageService.getUser();
+      if (vigile == null || !vigile.containsKey('realId')) {
+        print('❌ Erreur: Vigile non connecté ou ID manquant');
+        Get.snackbar(
+          'Erreur',
+          'Impossible de récupérer votre identifiant',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
         );
-        await _showValidationScreen(true);
-      } else {
-        await _showValidationScreen(false);
+        return null;
       }
 
-      // Vider le champ de saisie
-      matriculeController.clear();
+      final vigileId = vigile['realId']?.toString();
+      if (vigileId == null || vigileId == 'null') {
+        print('❌ realId du vigile est null ou invalide');
+        return null;
+      }
+
+      print(
+        '🔍 Enregistrement de pointage pour l\'étudiant $matriculeEtudiant par le vigile $vigileId',
+      );
+
+      // Construire les données pour l'API
+      final pointageData = {
+        "matriculeEtudiant": matriculeEtudiant,
+        "vigileId": vigileId,
+      };
+
+      // Appeler l'API via VigileService
+      return await _vigileService.fairePointage(pointageData);
     } catch (e) {
-      print('Erreur lors de la vérification du matricule: $e');
-      await _showValidationScreen(false);
+      print('❌ Erreur lors du pointage: $e');
+      Get.snackbar(
+        'Erreur',
+        'Impossible d\'enregistrer le pointage: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+      return null;
     }
   }
 
-  String formatDate(String dateStr) {
-    final date = DateTime.parse(dateStr);
-    return "${date.day}/${date.month}/${date.year} à ${date.hour}:${date.minute}";
-  }
-
-  // Ajout de mocks pour l'historique du vigile
-  List<Map<String, dynamic>> mockHistoriqueVigile = [
-    {
-      "id": 1,
-      "date": "2025-05-20",
-      "heure": "08:30",
-      "action": "Enregistrement entrée",
-      "etudiant": "Fatou Diop",
-      "classe": "L2 GLRS A",
-      "commentaire": "Arrivée normale",
-    },
-    {
-      "id": 2,
-      "date": "2025-05-20",
-      "heure": "09:15",
-      "action": "Enregistrement retard",
-      "etudiant": "Mamadou Sow",
-      "classe": "L3 CDSD",
-      "commentaire": "Retard de 15 minutes",
-    },
-    {
-      "id": 3,
-      "date": "2025-05-21",
-      "heure": "10:45",
-      "action": "Enregistrement sortie",
-      "etudiant": "Aïssatou Ndiaye",
-      "classe": "M1 ISI",
-      "commentaire": "Sortie anticipée autorisée",
-    },
-    {
-      "id": 4,
-      "date": "2025-05-22",
-      "heure": "08:00",
-      "action": "Enregistrement entrée",
-      "etudiant": "Ibrahima Diallo",
-      "classe": "L1 RTI",
-      "commentaire": "",
-    },
-    {
-      "id": 5,
-      "date": "2025-05-22",
-      "heure": "14:30",
-      "action": "Enregistrement absence",
-      "etudiant": "Mariama Bâ",
-      "classe": "L2 GLRS B",
-      "commentaire": "Absence justifiée par certificat médical",
-    },
-    {
-      "id": 6,
-      "date": "2025-05-23",
-      "heure": "09:00",
-      "action": "Enregistrement entrée",
-      "etudiant": "Ousmane Fall",
-      "classe": "M2 BDGL",
-      "commentaire": "",
-    },
-    {
-      "id": 7,
-      "date": "2025-05-23",
-      "heure": "11:20",
-      "action": "Validation badge",
-      "etudiant": "Aminata Touré",
-      "classe": "L3 IAGE",
-      "commentaire": "Nouveau badge remis",
-    },
-  ];
-
   // Méthode pour récupérer l'historique du vigile
-  Future<List<Map<String, dynamic>>> getHistoriqueVigile() async {
-    // Simulation d'un délai réseau
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Retourne les données mockées
-    return mockHistoriqueVigile;
-  }
-
-  // Méthode pour filtrer l'historique par date
-  Future<List<Map<String, dynamic>>> getHistoriqueVigileByDate(
-    String date,
-  ) async {
-    // Simulation d'un délai réseau
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Filtre les données par date
-    return mockHistoriqueVigile.where((item) => item["date"] == date).toList();
-  }
-
-  // Méthode pour filtrer l'historique par action
-  Future<List<Map<String, dynamic>>> getHistoriqueVigileByAction(
-    String action,
-  ) async {
-    // Simulation d'un délai réseau
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // Filtre les données par type d'action
-    return mockHistoriqueVigile
-        .where(
-          (item) => item["action"].toLowerCase().contains(action.toLowerCase()),
-        )
-        .toList();
-  }
-
-  // Méthodes pour l'historique
   Future<void> refreshData() async {
     isLoading.value = true;
     try {
-      final historique = await getHistoriqueVigile();
-      historiqueList.assignAll(historique);
+      final historique = await _vigileService.getHistoriqueVigile();
+      if (historique != null) {
+        historiqueList.assignAll(historique);
+      } else {
+        historiqueList.clear();
+        print('⚠️ Aucun historique récupéré');
+      }
       applyFilters(); // Appliquer les filtres actuels
     } catch (e) {
-      print('Erreur lors du chargement de l\'historique: $e');
+      print('❌ Erreur lors du chargement de l\'historique: $e');
+      historiqueList.clear();
     } finally {
       isLoading.value = false;
     }
@@ -248,10 +249,14 @@ class VigileController extends GetxController {
       final query = searchQuery.value.toLowerCase();
       result =
           result.where((item) {
-            return item["etudiant"].toString().toLowerCase().contains(query) ||
-                item["action"].toString().toLowerCase().contains(query) ||
-                item["classe"].toString().toLowerCase().contains(query) ||
-                item["commentaire"].toString().toLowerCase().contains(query);
+            return item["etudiantNom"]?.toString().toLowerCase().contains(
+                      query,
+                    ) ==
+                    true ||
+                item["matricule"]?.toString().toLowerCase().contains(query) ==
+                    true ||
+                item["coursNom"]?.toString().toLowerCase().contains(query) ==
+                    true;
           }).toList();
     }
 
