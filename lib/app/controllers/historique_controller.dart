@@ -30,17 +30,24 @@ class HistoriqueController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Récupération des absences depuis le service
-      final absencesData = await _historiqueService.getAbsences();
-      absences.assignAll(absencesData);
+      // Récupération de toutes les absences depuis le service (un seul appel API)
+      final allAbsencesData = await _historiqueService.getAbsences();
+      
+      // Filtrer pour exclure les présences
+      final filteredAbsencesData = allAbsencesData.where(
+        (absence) => absence['type'] != 'PRESENT'
+      ).toList();
+      
+      absences.assignAll(filteredAbsencesData);
 
-      // Récupération des retards depuis le service
-      final retardsData = await _historiqueService.getRetards();
+      // Les retards sont un sous-ensemble des absences
+      final retardsData = allAbsencesData.where(
+        (absence) => absence['type'] == 'RETARD'
+      ).toList();
+      
       retards.assignAll(retardsData);
 
-      print(
-        '✅ Données chargées avec succès: ${absences.length} absences, ${retards.length} retards',
-      );
+      print('✅ Données chargées avec succès: ${absences.length} absences/retards');
 
       // Appliquer les filtres actuels
       _applyFilters();

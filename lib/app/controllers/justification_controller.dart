@@ -13,7 +13,7 @@ class JustificationController extends GetxController {
   final absenceId = ''.obs;
   final isSubmitting = false.obs;
   final isServerConnected = true.obs;
-  final Rx<dynamic> selectedFile = Rx<dynamic>(null);
+  final RxList<File> selectedFiles = <File>[].obs;
 
   @override
   void onInit() {
@@ -36,7 +36,7 @@ class JustificationController extends GetxController {
   void onClose() {
     // Nettoyer les ressources
     description.value = '';
-    selectedFile.value = null;
+    selectedFiles.clear();
     super.onClose();
   }
 
@@ -68,7 +68,7 @@ class JustificationController extends GetxController {
       );
 
       if (photo != null) {
-        selectedFile.value = File(photo.path);
+        selectedFiles.add(File(photo.path));
         print('✅ Photo prise depuis la caméra: ${photo.path}');
       }
     } catch (e) {
@@ -80,28 +80,65 @@ class JustificationController extends GetxController {
     }
   }
 
-  // Méthode pour sélectionner un document depuis l'appareil
-  Future<void> pickFromDevice() async {
+  // Méthode pour sélectionner plusieurs images de la galerie
+  Future<void> pickImagesFromGallery() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> images = await picker.pickMultiImage(
+        imageQuality: 80,
+        maxWidth: 1280,
+        maxHeight: 1280,
       );
 
-      if (result != null && result.files.single.path != null) {
-        selectedFile.value = File(result.files.single.path!);
-        print('✅ Document sélectionné: ${result.files.single.path}');
+      if (images.isNotEmpty) {
+        for (var image in images) {
+          selectedFiles.add(File(image.path));
+        }
+        print('✅ ${images.length} images sélectionnées depuis la galerie');
       }
     } catch (e) {
-      print('❌ Erreur lors de la sélection du document: $e');
+      print('❌ Erreur lors de la sélection d\'images: $e');
       SnackbarUtils.showError(
         'Erreur',
-        'Impossible de sélectionner le document. Veuillez réessayer.',
+        'Impossible de sélectionner les images. Veuillez réessayer.',
       );
     }
   }
 
-  // Méthode pour envoyer une justification
+  // Méthode pour sélectionner plusieurs documents
+  Future<void> pickMultipleFromDevice() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: true,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx', 'xls', 'xlsx'],
+      );
+
+      if (result != null) {
+        for (var file in result.files) {
+          if (file.path != null) {
+            selectedFiles.add(File(file.path!));
+          }
+        }
+        print('✅ ${result.files.length} documents sélectionnés');
+      }
+    } catch (e) {
+      print('❌ Erreur lors de la sélection des documents: $e');
+      SnackbarUtils.showError(
+        'Erreur',
+        'Impossible de sélectionner les documents. Veuillez réessayer.',
+      );
+    }
+  }
+
+  // Méthode pour supprimer un fichier de la liste
+  void removeFile(int index) {
+    if (index >= 0 && index < selectedFiles.length) {
+      selectedFiles.removeAt(index);
+    }
+  }
+
+  // Méthode pour envoyer la justification avec plusieurs fichiers
   Future<bool> envoyerJustification() async {
     try {
       isSubmitting.value = true;
@@ -126,14 +163,12 @@ class JustificationController extends GetxController {
         return false;
       }
 
-      // Simuler l'envoi de la pièce jointe
-      String? pieceJointeUrl;
-      if (selectedFile.value != null) {
+      // Simuler l'envoi des pièces jointes
+      List<String> pieceJointeUrls = [];
+      for (var file in selectedFiles) {
         // Simuler l'upload du fichier
-        await Future.delayed(const Duration(milliseconds: 500));
-        pieceJointeUrl =
-            'https://mock-server.com/files/${DateTime.now().millisecondsSinceEpoch}';
-        print('✅ Pièce jointe téléchargée vers: $pieceJointeUrl');
+        await Future.delayed(const Duration(milliseconds: 200));
+        pieceJointeUrls.add('https://mock-server.com/files/${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}');
       }
 
       // Simuler l'envoi de la justification
@@ -141,7 +176,7 @@ class JustificationController extends GetxController {
         'id': DateTime.now().millisecondsSinceEpoch,
         'absenceId': absenceId.value,
         'description': description.value,
-        'pieceJointe': pieceJointeUrl,
+        'piecesJointes': pieceJointeUrls,
         'dateCreation': DateTime.now().toIso8601String(),
         'statut': 'En attente',
       };
@@ -156,7 +191,7 @@ class JustificationController extends GetxController {
 
       // Réinitialiser les champs
       description.value = '';
-      selectedFile.value = null;
+      selectedFiles.clear();
 
       // Retourner à l'écran précédent après un court délai
       await Future.delayed(const Duration(seconds: 1));

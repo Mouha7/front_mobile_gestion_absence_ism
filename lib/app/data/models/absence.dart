@@ -52,13 +52,16 @@ class Absence {
   }
 
   static TypeAbsence _parseType(String typeStr) {
-    switch (typeStr) {
+    switch (typeStr.toUpperCase()) {  // Ajout de toUpperCase() pour gérer les différentes casses
       case 'ABSENCE_COMPLETE':
         return TypeAbsence.ABSENCE_COMPLETE;
       case 'RETARD':
         return TypeAbsence.RETARD;
+      case 'PRESENT':  // Ajout du cas pour PRESENT
+        return TypeAbsence.PRESENT;
       default:
-        throw Exception('Type d\'absence inconnu: $typeStr');
+        print('⚠️ Type d\'absence non reconnu: "$typeStr", utilisation de RETARD par défaut');
+        return TypeAbsence.RETARD;  // Valeur par défaut au lieu de lancer une exception
     }
   }
 }

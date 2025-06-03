@@ -162,7 +162,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         const Text(
-          '5 derniers retards',
+          '5 Derniers pointages',
           style: TextStyle(color: Colors.white, fontSize: 18),
         ),
         ElevatedButton(
@@ -184,11 +184,11 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
     );
   }
 
-  Widget _buildRetardsList(List<Map<String, dynamic>> retards) {
+  Widget _buildRetardsList(List<Map<String, dynamic>> pointages) {
     // Si la liste est vide, afficher un message approprié
-    if (retards.isEmpty) {
+    if (pointages.isEmpty) {
       return Container(
-        margin: const EdgeInsets.only(top: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -198,10 +198,10 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.timer_off, size: 60, color: Colors.grey),
+              Icon(Icons.history, size: 60, color: Colors.grey),
               const SizedBox(height: 16),
               Text(
-                'Aucun retard récent',
+                'Aucun pointage récent',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -211,7 +211,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Félicitations! Vous n\'avez pas eu de retards récemment.',
+                'Vos pointages récents s\'afficheront ici.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey[600]),
               ),
@@ -221,146 +221,303 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
       );
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ListView.separated(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: retards.length,
-        separatorBuilder:
-            (context, index) => Divider(
-              height: 1,
-              indent: 20,
-              endIndent: 20,
-              color: AppTheme.blurColor,
-            ),
+    return RefreshIndicator(
+      onRefresh: controller.refreshData,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: pointages.length,
         itemBuilder: (context, index) {
-          final retard = retards[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListTile(
-              leading: Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF452917),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.menu_book, color: Colors.white),
-              ),
-              title: Text(
-                retard['nomCours'] ?? 'Matière inconnue',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${DateFormatter.formatDate(retard['date'])} - ${retard['duree']}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  if (retard['heureArrivee'] != null &&
-                      retard['heureDebut'] != null)
-                    Text(
-                      'Arrivé à ${retard['heureArrivee']} (début à ${retard['heureDebut']})',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          final pointage = pointages[index];
+          
+          // Déterminer le type de pointage et ses attributs visuels
+          Color cardBorderColor;
+          Color badgeColor;
+          IconData statusIcon;
+          String statusText;
+          
+          if (pointage['type'] == "PRESENT") {
+            cardBorderColor = AppTheme.secondaryColor;
+            badgeColor = Colors.green.shade300;
+            statusIcon = Icons.check_circle_outline;
+            statusText = "Présence";
+          } else if (pointage['type'] == "RETARD") {
+            cardBorderColor = AppTheme.secondaryColor;
+            badgeColor = Colors.amber.shade300;
+            statusIcon = Icons.watch_later_outlined;
+            statusText = "Retard ${pointage['duree']}";
+          } else {
+            cardBorderColor = AppTheme.secondaryColor;
+            badgeColor = Colors.red.shade300;
+            statusIcon = Icons.person_off_outlined;
+            statusText = "Absence";
+          }
+          
+          return InkWell(
+            onTap: () {
+              // Afficher les détails du pointage
+              Get.dialog(
+                Dialog(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                ],
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'RETARD',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.red,
-                      ),
-                    ),
-                    Icon(Icons.arrow_drop_down, color: Colors.red),
-                  ],
-                ),
-              ),
-              onTap: () {
-                // Afficher les détails du retard
-                Get.dialog(
-                  Dialog(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Détails du retard',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          pointage['type'] == 'PRESENT' 
+                              ? 'Détails de la présence'
+                              : (pointage['type'] == 'RETARD'
+                                  ? 'Détails du retard'
+                                  : 'Détails de l\'absence'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
                           ),
-                          const SizedBox(height: 16),
-                          _buildDetailRow(
-                            'Matière',
-                            retard['nomCours'] ?? 'Non spécifiée',
-                          ),
-                          _buildDetailRow(
-                            'Date',
-                            DateFormatter.formatDate(retard['date']),
-                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildDetailRow(
+                          'Matière',
+                          pointage['nomCours'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Date',
+                          DateFormatter.formatDate(pointage['date']),
+                        ),
+                        if (pointage['type'] == 'RETARD')
                           _buildDetailRow(
                             'Durée',
-                            retard['duree'] ?? 'Non spécifiée',
+                            pointage['duree'] ?? 'Non spécifiée',
                           ),
+                        _buildDetailRow(
+                          'Professeur',
+                          pointage['professeur'] ?? 'Non spécifié',
+                        ),
+                        _buildDetailRow(
+                          'Salle',
+                          pointage['salle'] ?? 'Non spécifiée',
+                        ),
+                        _buildDetailRow(
+                          'Heure de début',
+                          DateFormatter.formatTime(pointage['heureDebut']),
+                        ),
+                        _buildDetailRow(
+                          'Heure de pointage',
+                          DateFormatter.formatTime(pointage['heurePointage']),
+                        ),
+                        if (pointage['type'] != 'PRESENT')
                           _buildDetailRow(
-                            'Professeur',
-                            retard['professeur'] ?? 'Non spécifié',
+                            'État',
+                            pointage['justification'] == true ? 'Justifié' : 'Non justifié',
                           ),
-                          _buildDetailRow(
-                            'Salle',
-                            retard['salle'] ?? 'Non spécifiée',
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => Get.back(),
+                            child: const Text('Fermer'),
                           ),
-                          _buildDetailRow(
-                            'Heure de début',
-                            DateFormatter.formatTime(retard['heureDebut']),
-                          ),
-                          _buildDetailRow(
-                            'Heure de pointage',
-                            DateFormatter.formatTime(retard['heurePointage']),
-                          ),
-                          const SizedBox(height: 16),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => Get.back(),
-                              child: const Text('Fermer'),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: cardBorderColor.withOpacity(0.5), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // En-tête coloré
+                  Container(
+                    decoration: BoxDecoration(
+                      color: cardBorderColor.withOpacity(0.1),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      children: [
+                        // Badge de statut
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: badgeColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(statusIcon, color: cardBorderColor, size: 16),
+                              const SizedBox(width: 4),
+                              Text(
+                                statusText,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: cardBorderColor,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const Spacer(),
+                        
+                        // Heure du pointage
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: Colors.grey.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 14,
+                                color: Colors.black54,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                DateFormatter.formatTime(pointage['heurePointage'] ?? ''),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Contenu principal
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Matière
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.menu_book_outlined,
+                              size: 18,
+                              color: Colors.indigo,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                pointage['nomCours'] ?? 'Matière inconnue',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                            // Indicateur que la carte est cliquable
+                            const Icon(
+                              Icons.info_outline,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Informations supplémentaires
+                        Row(
+                          children: [
+                            // Professor
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.person_outline,
+                                    size: 16,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      pointage['professeur'] ?? 'Non spécifié',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey[700],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            // Date du pointage
+                            Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Text(
+                                DateFormatter.formatDate(pointage['date'] ?? ''),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ),
+                            
+                            // Salle
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.room_outlined,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  pointage['salle'] ?? 'Non spécifiée',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -420,11 +577,11 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
       backgroundColor: AppTheme.primaryColor,
       appBar: _buildAppBar() as PreferredSizeWidget?,
       body: Obx(() {
-        return RefreshIndicator(
-          onRefresh: controller.refreshData,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Partie fixe (en-tête)
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,15 +590,19 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                   const SizedBox(height: 24),
                   _buildRetardsHeader(context),
                   const SizedBox(height: 16),
-                  controller.isLoading.value
-                      ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      )
-                      : _buildRetardsList(controller.retards),
                 ],
               ),
             ),
-          ),
+            
+            // Partie scrollable (liste des retards)
+            Expanded(
+              child: controller.isLoading.value
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                : _buildRetardsList(controller.retards),
+            ),
+          ],
         );
       }),
     );

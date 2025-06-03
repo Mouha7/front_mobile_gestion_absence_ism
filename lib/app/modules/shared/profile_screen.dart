@@ -111,6 +111,7 @@ class ProfilMenu extends StatelessWidget {
                 email,
                 style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),
+              const SizedBox(height: 4),
               Text(
                 role,
                 style: TextStyle(

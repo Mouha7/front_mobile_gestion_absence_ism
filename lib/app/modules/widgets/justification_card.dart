@@ -6,13 +6,21 @@ import 'dart:io';
 class JustificationCard extends StatelessWidget {
   final Map<String, dynamic> absenceData;
   final bool isEditable;
+  final Color cardBorderColor;
+  final Color badgeColor;
+  final IconData statusIcon;
+  final String statusText;
   final Function()? onAddJustification;
   final Function()? onViewDetails;
 
   const JustificationCard({
     super.key,
     required this.absenceData,
-    this.isEditable = true,
+    this.isEditable = false,
+    this.cardBorderColor = const Color(0xFF5C6BC0), // Couleur par défaut
+    this.badgeColor = const Color(0xFFE3F2FD), // Couleur par défaut
+    this.statusIcon = Icons.info_outline, // Icône par défaut
+    this.statusText = "Absence", // Texte par défaut
     this.onAddJustification,
     this.onViewDetails,
   });

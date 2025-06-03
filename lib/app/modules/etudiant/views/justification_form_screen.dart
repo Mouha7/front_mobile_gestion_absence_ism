@@ -84,29 +84,55 @@ class JustificationFormView extends GetView<JustificationController> {
 
                       const SizedBox(height: 24),
 
-                      // Section de pièce jointe
-                      const Text(
-                        'Pièce justificative',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.black87,
-                        ),
+                      // Section de pièces jointes
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Pièces justificatives',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          // Nombre de pièces jointes
+                          Obx(() => controller.selectedFiles.isNotEmpty
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '${controller.selectedFiles.length} pièce(s)',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink()),
+                        ],
                       ),
                       const SizedBox(height: 8),
 
-                      // Aperçu du fichier sélectionné
-                      _buildFilePreview(),
+                      // Liste des fichiers sélectionnés
+                      Obx(() => _buildFilesPreview()),
 
                       const SizedBox(height: 16),
 
-                      // Boutons pour choisir un fichier
+                      // Boutons pour choisir des fichiers
                       Row(
                         children: [
                           Expanded(
                             child: _buildPickButton(
                               icon: Icons.camera_alt,
-                              label: "Prendre une photo",
+                              label: "Prendre des photos",
                               onTap: controller.pickFromCamera,
                             ),
                           ),
@@ -114,8 +140,8 @@ class JustificationFormView extends GetView<JustificationController> {
                           Expanded(
                             child: _buildPickButton(
                               icon: Icons.file_present,
-                              label: "Choisir un document",
-                              onTap: controller.pickFromDevice,
+                              label: "Choisir des documents",
+                              onTap: controller.pickMultipleFromDevice,
                             ),
                           ),
                         ],
@@ -262,8 +288,8 @@ class JustificationFormView extends GetView<JustificationController> {
     );
   }
 
-  Widget _buildFilePreview() {
-    if (controller.selectedFile.value == null) {
+  Widget _buildFilesPreview() {
+    if (controller.selectedFiles.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
@@ -297,7 +323,7 @@ class JustificationFormView extends GetView<JustificationController> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Prenez une photo ou choisissez un document',
+              'Ajoutez des photos ou des documents',
               style: TextStyle(color: Colors.grey[600], fontSize: 13),
             ),
           ],
@@ -305,121 +331,166 @@ class JustificationFormView extends GetView<JustificationController> {
       );
     }
 
-    final String fileName = controller.selectedFile.value!.path.split('/').last;
-    final bool isImage =
-        fileName.toLowerCase().endsWith('.jpg') ||
-        fileName.toLowerCase().endsWith('.jpeg') ||
-        fileName.toLowerCase().endsWith('.png');
+    return Column(
+      children: [
+        // Grille d'aperçus d'images
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 0.9,
+          ),
+          itemCount: controller.selectedFiles.length,
+          itemBuilder: (context, index) {
+            final file = controller.selectedFiles[index];
+            final String fileName = file.path.split('/').last;
+            final bool isImage =
+                fileName.toLowerCase().endsWith('.jpg') ||
+                fileName.toLowerCase().endsWith('.jpeg') ||
+                fileName.toLowerCase().endsWith('.png');
 
-    if (isImage) {
-      return Container(
-        width: double.infinity,
-        height: 200,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
+            return _buildFilePreviewItem(file, isImage, index);
+          },
         ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child:
-                  controller.selectedFile.value is File
-                      ? Image.file(
-                        controller.selectedFile.value as File,
-                        fit: BoxFit.cover,
-                        errorBuilder:
-                            (context, error, stackTrace) => const Center(
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
-                            ),
-                      )
-                      : Container(
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Icon(
-                            Icons.image,
-                            color: Colors.grey,
-                            size: 48,
-                          ),
-                        ),
-                      ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: InkWell(
-                onTap: () => controller.selectedFile.value = null,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 18),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Row(
-          children: [
-            Container(
-              height: 50,
-              width: 50,
+
+        // Bouton pour ajouter plus de fichiers
+        Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: InkWell(
+            onTap: () => _showAddFileOptions(Get.context!),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
               ),
-              child: Icon(
-                _getFileIcon(fileName),
-                color: AppTheme.primaryColor,
-                size: 30,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    color: AppTheme.primaryColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    fileName,
-                    style: const TextStyle(
+                    'Ajouter un autre document',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Document sélectionné',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
                   ),
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.close, color: Colors.grey[600]),
-              onPressed: () => controller.selectedFile.value = null,
-            ),
-          ],
+          ),
         ),
-      );
-    }
+      ],
+    );
+  }
+
+  Widget _buildFilePreviewItem(File file, bool isImage, int index) {
+    final String fileName = file.path.split('/').last;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[300]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(7),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: isImage
+                  ? Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: Colors.grey[100],
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: Colors.grey[50],
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _getFileIcon(fileName),
+                              color: AppTheme.primaryColor,
+                              size: 30,
+                            ),
+                            const SizedBox(height: 4),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Text(
+                                fileName.length > 10
+                                    ? '${fileName.substring(0, 7)}...'
+                                    : fileName,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+          // Bouton de suppression
+          Positioned(
+            top: 0,
+            right: 0,
+            child: InkWell(
+              onTap: () => controller.removeFile(index),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(7),
+                    bottomLeft: Radius.circular(7),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPickButton({
@@ -464,6 +535,86 @@ class JustificationFormView extends GetView<JustificationController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAddFileOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Ajouter un document',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildOptionTile(
+              icon: Icons.camera_alt,
+              title: 'Prendre une photo',
+              subtitle: 'Capturer une image avec l\'appareil photo',
+              onTap: () {
+                Navigator.pop(context);
+                controller.pickFromCamera();
+              },
+            ),
+            const Divider(),
+            _buildOptionTile(
+              icon: Icons.photo_library,
+              title: 'Choisir des images',
+              subtitle: 'Sélectionner depuis la galerie',
+              onTap: () {
+                Navigator.pop(context);
+                controller.pickImagesFromGallery();
+              },
+            ),
+            const Divider(),
+            _buildOptionTile(
+              icon: Icons.file_present,
+              title: 'Choisir des documents',
+              subtitle: 'PDF, Word, Excel, etc.',
+              onTap: () {
+                Navigator.pop(context);
+                controller.pickMultipleFromDevice();
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: AppTheme.primaryColor),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(subtitle),
+      onTap: onTap,
     );
   }
 

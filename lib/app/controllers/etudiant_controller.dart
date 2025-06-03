@@ -10,7 +10,15 @@ class EtudiantController extends GetxController {
   final isServerConnected = true.obs;
   final isLoading = false.obs;
   final retards = <Map<String, dynamic>>[].obs;
-  final qrCodeData = ''.obs; // Données du code QR (matricule étudiant)
+  final absences = <Map<String, dynamic>>[].obs;
+  final filteredAbsences =
+      <Map<String, dynamic>>[].obs; // Pour stocker les résultats filtrés
+  final qrCodeData = ''.obs;
+
+  // Propriétés pour la recherche et le filtrage
+  final searchQuery = "".obs;
+  final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
+  final isDateFilterActive = false.obs;
 
   @override
   void onReady() {
@@ -22,6 +30,73 @@ class EtudiantController extends GetxController {
     _initQRCodeData();
   }
 
+  // Méthode pour rechercher dans les absences
+  void searchAbsences(String query) {
+    searchQuery.value = query;
+    _applyFilters();
+  }
+
+  // Méthode pour filtrer par date
+  Future<void> filterByDate(DateTime date) async {
+    selectedDate.value = date;
+    isDateFilterActive.value = true;
+    _applyFilters();
+  }
+
+  // Méthode pour réinitialiser le filtre de date
+  void resetDateFilter() {
+    selectedDate.value = null;
+    isDateFilterActive.value = false;
+    _applyFilters();
+  }
+
+  // Méthode privée pour appliquer les filtres
+  void _applyFilters() {
+    // Commencer avec la liste complète
+    List<Map<String, dynamic>> result = List<Map<String, dynamic>>.from(
+      absences,
+    );
+
+    // Appliquer le filtre de recherche si présent
+    if (searchQuery.isNotEmpty) {
+      result =
+          result.where((absence) {
+            // Rechercher dans plusieurs champs
+            return (absence['nomCours']?.toString().toLowerCase() ?? '')
+                    .contains(searchQuery.value.toLowerCase()) ||
+                (absence['professeur']?.toString().toLowerCase() ?? '')
+                    .contains(searchQuery.value.toLowerCase()) ||
+                (absence['salle']?.toString().toLowerCase() ?? '').contains(
+                  searchQuery.value.toLowerCase(),
+                );
+          }).toList();
+    }
+
+    // Appliquer le filtre de date si actif
+    if (isDateFilterActive.value && selectedDate.value != null) {
+      result =
+          result.where((absence) {
+            // Extraire la date de l'absence
+            String absenceDate = absence['date'] ?? '';
+            if (absenceDate.isEmpty) return false;
+
+            try {
+              // Format supposé: "2025-06-02T22:41:21.949"
+              DateTime dateTime = DateTime.parse(absenceDate);
+              return dateTime.year == selectedDate.value!.year &&
+                  dateTime.month == selectedDate.value!.month &&
+                  dateTime.day == selectedDate.value!.day;
+            } catch (e) {
+              print('Erreur lors du parsing de la date: $e');
+              return false;
+            }
+          }).toList();
+    }
+
+    // Mettre à jour la liste filtrée
+    filteredAbsences.assignAll(result);
+  }
+
   // Méthode pour rafraîchir les données
   Future<void> refreshData() async {
     try {
@@ -30,18 +105,18 @@ class EtudiantController extends GetxController {
       // Simulation d'un délai réseau
       await Future.delayed(const Duration(seconds: 1));
 
-      // Vérification de la connexion au serveur (à remplacer par une vraie vérification)
+      // Vérification de la connexion au serveur
       isServerConnected.value = await _checkServerConnection();
 
       if (isServerConnected.value) {
-        // Récupération des données de retards (à remplacer par un appel API réel)
-        await _fetchRetardsData();
+        // Une seule fonction pour récupérer toutes les données d'absence
+        await _fetchAbsenceData();
 
         // Rafraîchissement des données du QR code
         await _refreshQRCode();
+        _applyFilters(); // Appliquer les filtres après avoir récupéré les données
       }
     } catch (e) {
-      // Gestion des erreurs
       isServerConnected.value = false;
       print('Erreur lors du rafraîchissement des données: $e');
     } finally {
@@ -63,44 +138,108 @@ class EtudiantController extends GetxController {
     }
   }
 
-  // Méthode privée pour récupérer les données de retards
-  Future<void> _fetchRetardsData() async {
+  // Méthode unique pour récupérer à la fois les absences et les retards
+  Future<void> _fetchAbsenceData() async {
     try {
       final userData = _storageService.getUser();
       print('Données utilisateur récupérées: $userData');
 
       if (userData != null && userData['absences'] != null) {
-        final absences = List<Map<String, dynamic>>.from(userData['absences']);
+        final allAbsences = List<Map<String, dynamic>>.from(
+          userData['absences'],
+        );
 
-        // Transformer les absences en format d'affichage pour les retards
-        final formattedRetards =
-            absences.map((absence) {
+        // Filtrer pour exclure les présences
+        final filteredAbsences =
+            allAbsences.where((absence) => absence['type'] != 'PRESENT').map((
+              absence,
+            ) {
               return {
+                'id': absence['id'],
                 'nomCours':
                     absence['nomCours'] ??
                     absence['cours']?['nom'] ??
                     'Matière inconnue',
                 'date': absence['heurePointage'] ?? '',
                 'heurePointage': absence['heurePointage'],
-                'duree': '${absence['minutesRetard'] ?? '0'} min',
-                'type': absence['type'] ?? 'RETARD',
+                'duree':
+                    absence['type'] == 'RETARD'
+                        ? '${absence['minutesRetard'] ?? '0'} min'
+                        : 'Journée entière',
+                'type': absence['type'] ?? 'ABSENCE_COMPLETE',
                 'professeur':
-                    absence['professeur'] ?? absence['cours']?['enseignant'],
-                'salle': absence['salle'] ?? absence['cours']?['salle'],
+                    absence['professeur'] ??
+                    absence['cours']?['enseignant'] ??
+                    'Non spécifié',
+                'salle':
+                    absence['salle'] ??
+                    absence['cours']?['salle'] ??
+                    'Non spécifiée',
                 'heureDebut':
-                    absence['heureDebut'] ?? absence['cours']?['heureDebut'],
+                    absence['heureDebut'] ??
+                    absence['cours']?['heureDebut'] ??
+                    '',
+                'justification': absence['justification'] ?? false,
+                'etat':
+                    (absence['justification'] == true)
+                        ? 'Justifiée'
+                        : 'Non justifiée',
               };
             }).toList();
 
-        // Prendre les 5 derniers retards
-        retards.assignAll(formattedRetards.take(5));
+        // Mettre à jour la liste complète des absences
+        absences.assignAll(filteredAbsences);
+
+        // Extraire tous les types de pointages pour l'affichage sur la page d'accueil
+        // (pas seulement les retards, mais aussi les présences et les absences)
+        final pointagesList =
+            allAbsences
+                .map((absence) {
+                  return {
+                    'id': absence['id'],
+                    'nomCours':
+                        absence['nomCours'] ??
+                        absence['cours']?['nom'] ??
+                        'Matière inconnue',
+                    'date': absence['heurePointage'] ?? '',
+                    'heurePointage': absence['heurePointage'],
+                    'duree':
+                        absence['type'] == 'RETARD'
+                            ? '${absence['minutesRetard'] ?? '0'} min'
+                            : 'Journée entière',
+                    'type': absence['type'] ?? 'ABSENCE_COMPLETE',
+                    'professeur':
+                        absence['professeur'] ??
+                        absence['cours']?['enseignant'] ??
+                        'Non spécifié',
+                    'salle':
+                        absence['salle'] ??
+                        absence['cours']?['salle'] ??
+                        'Non spécifiée',
+                    'heureDebut':
+                        absence['heureDebut'] ??
+                        absence['cours']?['heureDebut'] ??
+                        '',
+                    'justification': absence['justification'] ?? false,
+                    'etat':
+                        (absence['justification'] == true)
+                            ? 'Justifiée'
+                            : 'Non justifiée',
+                  };
+                })
+                .take(5) // Limiter à 5 éléments
+                .toList();
+
+        retards.assignAll(pointagesList);
         return;
       }
 
       retards.clear();
+      absences.clear();
     } catch (e) {
-      print('Erreur lors de la récupération des retards: $e');
+      print('Erreur lors de la récupération des données d\'absence: $e');
       retards.clear();
+      absences.clear();
     }
   }
 

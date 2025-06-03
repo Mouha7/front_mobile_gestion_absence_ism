@@ -78,9 +78,12 @@ class AuthService extends GetxService {
         "id": user.id,
         "nom": user.nom,
         "prenom": user.prenom,
-        "email": user.email, // S'assurer que l'email est bien présent ici
+        "email": email, // S'assurer que l'email est bien présent ici
         "role": loginResponse.role,
       };
+
+      // Ajouter un log pour vérifier l'email
+      print('📧 Email sauvegardé: ${user.email}');
 
       // Ajouter les données spécifiques au rôle
       if (loginResponse.role == 'VIGILE') {
