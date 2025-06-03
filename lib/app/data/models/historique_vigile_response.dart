@@ -1,11 +1,31 @@
+import 'package:hive/hive.dart';
+
+part 'historique_vigile_response.g.dart';
+
+@HiveType(typeId: 9)
 class HistoriqueVigileResponse {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String etudiantNom;
+  
+  @HiveField(2)
   final String matricule;
+  
+  @HiveField(3)
   final String coursNom;
+  
+  @HiveField(4)
   final String date;
+  
+  @HiveField(5)
   final String heureArrivee;
+  
+  @HiveField(6)
   final String minutesRetard;
+  
+  @HiveField(7)
   final String typeAbsence;
 
   HistoriqueVigileResponse({

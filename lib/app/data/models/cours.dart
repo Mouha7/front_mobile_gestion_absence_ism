@@ -1,10 +1,28 @@
+import 'package:hive/hive.dart';
+
+part 'cours.g.dart';
+
+@HiveType(typeId: 4)
 class Cours {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String nom;
+  
+  @HiveField(2)
   final String enseignant;
+  
+  @HiveField(3)
   final String salle;
+  
+  @HiveField(4)
   final String heureDebut;
+  
+  @HiveField(5)
   final String heureFin;
+  
+  @HiveField(6)
   final String jour;
   
   Cours({

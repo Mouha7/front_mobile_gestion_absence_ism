@@ -1,31 +1,59 @@
-import 'package:front_mobile_gestion_absence_ism/app/data/enums/statut_justification.dart';
 import 'package:intl/intl.dart';
+import 'package:hive/hive.dart';
 
+part 'justification.g.dart';
+
+@HiveType(typeId: 5)
+enum StatutJustification {
+  @HiveField(0)
+  EN_ATTENTE,
+
+  @HiveField(1)
+  VALIDEE,
+
+  @HiveField(2)
+  REJETEE
+}
+
+@HiveType(typeId: 6)
 class Justification {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String dateCreation;
+
+  @HiveField(2)
   final String description;
-  final String documentPath;
+
+  @HiveField(3)
+  final String? documentPath;
+
+  @HiveField(4)
   final StatutJustification statut;
-  final String? absenceId;
+
+  @HiveField(5)
+  final String absenceId;
+
+  @HiveField(6)
   final String? adminId;
-  
+
   Justification({
     required this.id,
     required this.dateCreation,
     required this.description,
-    required this.documentPath,
+    this.documentPath,
     required this.statut,
-    this.absenceId,
+    required this.absenceId,
     this.adminId,
   });
-  
+
   String get dateCreationFormatee {
     final DateTime dateObj = DateTime.parse(dateCreation);
     final DateFormat formatter = DateFormat('dd/MM/yyyy');
     return formatter.format(dateObj);
   }
-  
+
   factory Justification.fromJson(Map<String, dynamic> json) {
     return Justification(
       id: json['id'],
@@ -37,7 +65,7 @@ class Justification {
       adminId: json['adminId'],
     );
   }
-  
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -49,7 +77,7 @@ class Justification {
       'adminId': adminId,
     };
   }
-  
+
   static StatutJustification _parseStatut(String statutStr) {
     switch (statutStr) {
       case 'EN_ATTENTE':

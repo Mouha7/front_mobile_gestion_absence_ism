@@ -1,8 +1,16 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/role.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/models/absence.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/models/utilisateur.dart';
+import 'package:hive/hive.dart';
 
+part 'vigile.g.dart';
+
+@HiveType(typeId: 2)
 class Vigile extends Utilisateur {
+  @HiveField(6)
   final String badge;
+
+  @HiveField(7)
   final String realId;
 
   Vigile({

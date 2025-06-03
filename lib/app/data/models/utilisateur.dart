@@ -1,12 +1,27 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/role.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/models/absence.dart';
+import 'package:hive/hive.dart';
 
+part 'utilisateur.g.dart';
+
+@HiveType(typeId: 0)
 class Utilisateur {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String nom;
+  
+  @HiveField(2)
   final String prenom;
+  
+  @HiveField(3)
   final String email;
+  
+  @HiveField(4)
   final Role role;
+  
+  @HiveField(5)
   List<Absence> absences;
 
   Utilisateur({

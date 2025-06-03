@@ -1,13 +1,26 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/role.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/models/utilisateur.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/models/absence.dart';
+import 'package:hive/hive.dart';
 
+part 'etudiant.g.dart';
+
+@HiveType(typeId: 1)
 class Etudiant extends Utilisateur {
+  @HiveField(6)
   final String matricule;
+
+  @HiveField(7)
   final String filiere;
+
+  @HiveField(8)
   final String niveau;
+
+  @HiveField(9)
   final String classe;
+
   @override
+  @HiveField(10)
   final List<Absence> absences;
 
   Etudiant({

@@ -122,8 +122,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                         data: ThemeData.light().copyWith(
                           colorScheme: ColorScheme.light(
                             primary: AppTheme.primaryColor,
-                          ),
-                          dialogBackgroundColor: Colors.white,
+                          ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
                         ),
                         child: child!,
                       );

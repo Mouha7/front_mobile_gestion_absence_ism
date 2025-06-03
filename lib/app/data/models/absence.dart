@@ -1,15 +1,36 @@
 import 'package:front_mobile_gestion_absence_ism/app/data/enums/statut_absence.dart';
+import 'package:hive/hive.dart';
 
+part 'absence.g.dart';
+
+@HiveType(typeId: 3)
 class Absence {
+  @HiveField(0)
   final String id;
+  
+  @HiveField(1)
   final String heurePointage;
+  
+  @HiveField(2)
   final String minutesRetard;
+  
+  @HiveField(3)
   final TypeAbsence type;
+  
+  @HiveField(4)
   final String nomCours;
-  final String professeur;
-  final String salle;
-  final String heureDebut;
+  
+  @HiveField(5)
   final bool isJustification;
+  
+  @HiveField(6)
+  final String professeur;
+  
+  @HiveField(7)
+  final String salle;
+  
+  @HiveField(8)
+  final String heureDebut;
 
   Absence({
     required this.id,
