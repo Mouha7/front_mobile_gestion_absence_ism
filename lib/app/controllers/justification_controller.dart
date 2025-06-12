@@ -1,9 +1,13 @@
+import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.dart';
 import 'package:get/get.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/snackbar_utils.dart';
+
+// Importer le service de fichier mis à jour
+import '../data/services/file_service.dart';
 
 class JustificationController extends GetxController {
   // Services - Pas utilisé directement dans le mode mock
@@ -14,6 +18,9 @@ class JustificationController extends GetxController {
   final isSubmitting = false.obs;
   final isServerConnected = true.obs;
   final RxList<File> selectedFiles = <File>[].obs;
+
+  final FileService _fileService = Get.find<FileService>();
+  final ApiService _apiService = Get.find<ApiService>();
 
   @override
   void onInit() {
@@ -151,53 +158,48 @@ class JustificationController extends GetxController {
         return false;
       }
 
-      // Simuler un délai réseau
-      await Future.delayed(const Duration(milliseconds: 1500));
+      // 1. Téléverser les fichiers sur Supabase
+      List<String> pieceJointeUrls = [];
+      if (selectedFiles.isNotEmpty) {
+        pieceJointeUrls = await _fileService.uploadMultipleFiles(selectedFiles);
+        
+        if (pieceJointeUrls.isEmpty && selectedFiles.isNotEmpty) {
+          SnackbarUtils.showError(
+            'Erreur',
+            'Impossible de téléverser les pièces jointes. Veuillez réessayer.',
+          );
+          return false;
+        }
+      }
 
-      // Vérifier la connexion au serveur
-      if (!isServerConnected.value) {
+      // 2. Envoyer les données à votre API MongoDB (avec les URLs Supabase)
+      final justificationData = {
+        'absenceId': absenceId.value,
+        'description': description.value,
+        'piecesJointes': pieceJointeUrls, // URLs des fichiers Supabase
+      };
+
+      // Votre API existante sauvegarde ces données dans MongoDB
+      final response = await _apiService.post('etudiant/justification', justificationData);
+      
+      if (response != null) {
+        SnackbarUtils.showSuccess(
+          'Succès',
+          'Votre justification a été envoyée avec succès',
+        );
+        
+        // Réinitialiser les champs
+        description.value = '';
+        selectedFiles.clear();
+        
+        return true;
+      } else {
         SnackbarUtils.showError(
           'Erreur',
-          'Impossible de soumettre la justification. Vérifiez votre connexion internet.',
+          'Une erreur est survenue lors de l\'envoi de votre justification',
         );
         return false;
       }
-
-      // Simuler l'envoi des pièces jointes
-      List<String> pieceJointeUrls = [];
-      for (var file in selectedFiles) {
-        // Simuler l'upload du fichier
-        await Future.delayed(const Duration(milliseconds: 200));
-        pieceJointeUrls.add('https://mock-server.com/files/${DateTime.now().millisecondsSinceEpoch}_${file.path.split('/').last}');
-      }
-
-      // Simuler l'envoi de la justification
-      final mockJustification = {
-        'id': DateTime.now().millisecondsSinceEpoch,
-        'absenceId': absenceId.value,
-        'description': description.value,
-        'piecesJointes': pieceJointeUrls,
-        'dateCreation': DateTime.now().toIso8601String(),
-        'statut': 'En attente',
-      };
-
-      print('✅ Justification simulée envoyée: ${mockJustification.toString()}');
-
-      // Simuler une réponse réussie
-      SnackbarUtils.showSuccess(
-        'Succès',
-        'Votre justification a été envoyée avec succès',
-      );
-
-      // Réinitialiser les champs
-      description.value = '';
-      selectedFiles.clear();
-
-      // Retourner à l'écran précédent après un court délai
-      await Future.delayed(const Duration(seconds: 1));
-      Get.back(result: true);
-
-      return true;
     } catch (e) {
       print('❌ Erreur lors de l\'envoi de la justification: $e');
       SnackbarUtils.showError('Erreur', 'Une erreur est survenue: $e');

@@ -5,6 +5,7 @@ import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart';
 import 'package:get/get.dart';
+import 'package:front_mobile_gestion_absence_ism/app/modules/shared/widgets/bottom_nav_bar.dart';
 
 class EtudiantDashboardView extends GetView<EtudiantController> {
   const EtudiantDashboardView({super.key});
@@ -228,13 +229,13 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
         itemCount: pointages.length,
         itemBuilder: (context, index) {
           final pointage = pointages[index];
-          
+
           // Déterminer le type de pointage et ses attributs visuels
           Color cardBorderColor;
           Color badgeColor;
           IconData statusIcon;
           String statusText;
-          
+
           if (pointage['type'] == "PRESENT") {
             cardBorderColor = AppTheme.secondaryColor;
             badgeColor = Colors.green.shade300;
@@ -251,7 +252,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
             statusIcon = Icons.person_off_outlined;
             statusText = "Absence";
           }
-          
+
           return InkWell(
             onTap: () {
               // Afficher les détails du pointage
@@ -268,7 +269,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          pointage['type'] == 'PRESENT' 
+                          pointage['type'] == 'PRESENT'
                               ? 'Détails de la présence'
                               : (pointage['type'] == 'RETARD'
                                   ? 'Détails du retard'
@@ -311,7 +312,9 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                         if (pointage['type'] != 'PRESENT')
                           _buildDetailRow(
                             'État',
-                            pointage['justification'] == true ? 'Justifié' : 'Non justifié',
+                            pointage['justification'] == true
+                                ? 'Justifié'
+                                : 'Non justifié',
                           ),
                         const SizedBox(height: 16),
                         Align(
@@ -333,7 +336,10 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
               elevation: 3,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: cardBorderColor.withOpacity(0.5), width: 1.5),
+                side: BorderSide(
+                  color: cardBorderColor.withOpacity(0.5),
+                  width: 1.5,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -347,7 +353,10 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                         topRight: Radius.circular(12),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         // Badge de statut
@@ -363,7 +372,11 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(statusIcon, color: cardBorderColor, size: 16),
+                              Icon(
+                                statusIcon,
+                                color: cardBorderColor,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 statusText,
@@ -376,9 +389,9 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                             ],
                           ),
                         ),
-                        
+
                         const Spacer(),
-                        
+
                         // Heure du pointage
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -399,7 +412,9 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                DateFormatter.formatTime(pointage['heurePointage'] ?? ''),
+                                DateFormatter.formatTime(
+                                  pointage['heurePointage'] ?? '',
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -411,7 +426,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                       ],
                     ),
                   ),
-                  
+
                   // Contenu principal
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -444,9 +459,9 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Informations supplémentaires
                         Row(
                           children: [
@@ -473,18 +488,23 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                                 ],
                               ),
                             ),
-                            
+
                             // Date du pointage
                             Container(
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(4),
                                 border: Border.all(color: Colors.grey.shade300),
                               ),
                               child: Text(
-                                DateFormatter.formatDate(pointage['date'] ?? ''),
+                                DateFormatter.formatDate(
+                                  pointage['date'] ?? '',
+                                ),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -492,7 +512,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                                 ),
                               ),
                             ),
-                            
+
                             // Salle
                             Row(
                               children: [
@@ -593,18 +613,34 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                 ],
               ),
             ),
-            
+
             // Partie scrollable (liste des retards)
             Expanded(
-              child: controller.isLoading.value
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                : _buildRetardsList(controller.retards),
+              child:
+                  controller.isLoading.value
+                      ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                      : _buildRetardsList(controller.retards),
             ),
           ],
         );
       }),
+      bottomNavigationBar: Obx(
+        () => BottomNavBar(
+          currentIndex: controller.selectedTabIndex.value,
+          onTap: (index) {
+            if (index == 0) {
+              // Déjà sur la page d'accueil
+              controller.selectedTabIndex.value = 0;
+            } else if (index == 1) {
+              // Mettre à jour l'index avant la navigation
+              controller.selectedTabIndex.value = 1;
+              Get.toNamed(Routes.ETUDIANT_NAVIGATE);
+            }
+          },
+        ),
+      ),
     );
   }
 }

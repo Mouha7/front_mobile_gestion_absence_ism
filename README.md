@@ -14,3 +14,11 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+```dart
+// Position du campus ISM
+  final LatLng ismPosition = LatLng(
+    14.690904,
+    -17.458394,
+  ); // Position exacte du campus ISM
+```

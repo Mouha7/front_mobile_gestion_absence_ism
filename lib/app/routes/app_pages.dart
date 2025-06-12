@@ -3,6 +3,7 @@ import 'package:front_mobile_gestion_absence_ism/app/modules/auth/bindings/auth_
 import 'package:front_mobile_gestion_absence_ism/app/modules/auth/views/login_view.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/bindings/etudiant_binding.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/home_screen.dart';
+import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/navigate_screen.dart';
 
 // Imports pour le module vigile
 import 'package:front_mobile_gestion_absence_ism/app/modules/vigile/bindings/vigile_binding.dart';
@@ -47,6 +48,11 @@ class AppPages {
       name: Routes.ETUDIANT_JUSTIFICATION_FORM,
       page: () => JustificationFormView(),
       binding: JustificationBinding(),
+    ),
+    GetPage(
+      name: Routes.ETUDIANT_NAVIGATE,
+      page: () => const EtudiantNavigateView(),
+      binding: EtudiantBinding(),
     ),
     // Routes Vigile
     GetPage(

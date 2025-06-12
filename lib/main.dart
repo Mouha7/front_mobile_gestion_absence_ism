@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/api_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/auth_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/file_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/storage_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/absence_service.dart';
+import 'package:front_mobile_gestion_absence_ism/app/data/services/supabase_service.dart';
 import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -36,8 +38,12 @@ Future<void> initServices() async {
   // Initialiser le service de stockage Hive
   await Get.putAsync<StorageService>(() => StorageService().init());
 
+  // Initialiser Supabase pour le stockage uniquement
+  await Get.putAsync<SupabaseStorageService>(() => SupabaseStorageService().init());
+
   // Initialiser les autres services
   await Get.putAsync<ApiService>(() async => ApiService());
+  Get.put<FileService>(FileService());
   Get.put<AuthService>(AuthService());
   Get.put<AbsenceService>(AbsenceService());
 }

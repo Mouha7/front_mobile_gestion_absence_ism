@@ -12,10 +12,13 @@ class HistoriqueController extends GetxController {
   final isLoading = false.obs;
   final isServerConnected = true.obs;
   final absences = <Map<String, dynamic>>[].obs;
-  final retards = <Map<String, dynamic>>[].obs;
   final filteredAbsences = <Map<String, dynamic>>[].obs;
+  final description = ''.obs;
+  final absenceId = ''.obs;
+  final isSubmitting = false.obs;
   final searchQuery = ''.obs;
   final isDateFilterActive = false.obs;
+  final Rx<dynamic> selectedFile = Rx<dynamic>(null);
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
 
   @override
@@ -40,14 +43,7 @@ class HistoriqueController extends GetxController {
       
       absences.assignAll(filteredAbsencesData);
 
-      // Les retards sont un sous-ensemble des absences
-      final retardsData = allAbsencesData.where(
-        (absence) => absence['type'] == 'RETARD'
-      ).toList();
-      
-      retards.assignAll(retardsData);
-
-      print('✅ Données chargées avec succès: ${absences.length} absences/retards');
+      print('✅ Données d\'absences récupérées dans le controller: ${absences.length} absences');
 
       // Appliquer les filtres actuels
       _applyFilters();
@@ -183,12 +179,6 @@ class HistoriqueController extends GetxController {
       isLoading.value = false;
     }
   }
-
-  // Variables pour la justification
-  final description = ''.obs;
-  final absenceId = ''.obs;
-  final isSubmitting = false.obs;
-  final Rx<dynamic> selectedFile = Rx<dynamic>(null);
 
   // Méthode pour prendre une photo via la caméra
   Future<void> pickFromCamera() async {

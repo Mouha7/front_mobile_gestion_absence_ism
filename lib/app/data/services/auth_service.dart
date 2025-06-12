@@ -80,6 +80,7 @@ class AuthService extends GetxService {
         "prenom": user.prenom,
         "email": email, // S'assurer que l'email est bien présent ici
         "role": loginResponse.role,
+        "token": response["results"]["token"],
       };
 
       // Ajouter un log pour vérifier l'email

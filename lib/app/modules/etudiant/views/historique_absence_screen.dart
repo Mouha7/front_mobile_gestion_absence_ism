@@ -4,7 +4,8 @@ import 'package:get/get.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart'; // Changé pour utiliser etudiant_controller
 
-class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser EtudiantController au lieu de HistoriqueController
+class EtudiantAbsencesView extends GetView<EtudiantController> {
+  // Utiliser EtudiantController au lieu de HistoriqueController
   const EtudiantAbsencesView({super.key});
 
   Widget _buildAppBar(BuildContext context) {
@@ -122,13 +123,16 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                         data: ThemeData.light().copyWith(
                           colorScheme: ColorScheme.light(
                             primary: AppTheme.primaryColor,
-                          ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
+                          ),
+                          dialogTheme: DialogThemeData(
+                            backgroundColor: Colors.white,
+                          ),
                         ),
                         child: child!,
                       );
                     },
                   );
-                  
+
                   if (pickedDate != null) {
                     controller.filterByDate(pickedDate);
                   }
@@ -162,41 +166,44 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                 ),
               ),
             ),
-            
+
             // Affichage du filtre actif
-            Obx(() => controller.isDateFilterActive.value
-              ? Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
+            Obx(
+              () =>
+                  controller.isDateFilterActive.value
+                      ? Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: () => controller.resetDateFilter(),
-                        child: Icon(
-                          Icons.close,
-                          color: AppTheme.primaryColor,
-                          size: 18,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              : const SizedBox.shrink()),
+                        child: Row(
+                          children: [
+                            Text(
+                              '${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: () => controller.resetDateFilter(),
+                              child: Icon(
+                                Icons.close,
+                                color: AppTheme.primaryColor,
+                                size: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      : const SizedBox.shrink(),
+            ),
           ],
         ),
       ],
@@ -217,7 +224,11 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.history_toggle_off, size: 60, color: Colors.grey),
+              const Icon(
+                Icons.history_toggle_off,
+                size: 60,
+                color: Colors.grey,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Aucune absence ou retard',
@@ -240,6 +251,8 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
       );
     }
 
+    print("historique --> $absences");
+
     return Container(
       margin: const EdgeInsets.only(top: 16),
       child: ListView.builder(
@@ -248,13 +261,13 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
         itemCount: absences.length,
         itemBuilder: (context, index) {
           final absence = absences[index];
-          
+
           // Déterminer le type d'absence et ses attributs visuels
           Color cardBorderColor;
           Color badgeColor;
           IconData statusIcon;
           String statusText;
-          
+
           if (absence['type'] == "RETARD") {
             cardBorderColor = AppTheme.secondaryColor;
             badgeColor = Colors.amber.shade300;
@@ -262,14 +275,14 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
             statusText = "Retard ${absence['duree']}";
           } else {
             // Type ABSENCE_COMPLETE ou autre
-            cardBorderColor = Colors.red;
+            cardBorderColor = AppTheme.secondaryColor;
             badgeColor = Colors.red.shade300;
             statusIcon = Icons.person_off_outlined;
             statusText = "Absence";
           }
-          
-          final bool peutJustifier = absence['justification'] != true; // N'afficher le bouton que si l'absence n'est pas déjà justifiée
-          
+
+          final bool estJustifiee = absence['justification'] == true;
+
           return InkWell(
             onTap: () {
               // Afficher les détails de l'absence
@@ -286,7 +299,9 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          absence['type'] == 'RETARD' ? 'Détails du retard' : 'Détails de l\'absence',
+                          absence['type'] == 'RETARD'
+                              ? 'Détails du retard'
+                              : 'Détails de l\'absence',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -329,7 +344,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            if (peutJustifier)
+                            if (!estJustifiee)
                               TextButton.icon(
                                 icon: const Icon(Icons.assignment_outlined),
                                 label: const Text('Justifier'),
@@ -341,10 +356,15 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                                     arguments: {
                                       'id': absence['id'],
                                       'matiere': absence['nomCours'],
-                                      'date': DateFormatter.formatDate(absence['date']),
+                                      'date': DateFormatter.formatDate(
+                                        absence['date'],
+                                      ),
                                       'duree': absence['duree'],
                                       'professeur': absence['professeur'],
-                                      'type': absence['type'] == 'RETARD' ? 'Retard' : 'Absence',
+                                      'type':
+                                          absence['type'] == 'RETARD'
+                                              ? 'Retard'
+                                              : 'Absence',
                                     },
                                   )?.then((result) {
                                     if (result == true) {
@@ -378,7 +398,10 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
               elevation: 3,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: cardBorderColor.withOpacity(0.5), width: 1.5),
+                side: BorderSide(
+                  color: cardBorderColor.withOpacity(0.5),
+                  width: 1.5,
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +415,10 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                         topRight: Radius.circular(12),
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         // Badge de statut
@@ -408,7 +434,11 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(statusIcon, color: cardBorderColor, size: 16),
+                              Icon(
+                                statusIcon,
+                                color: cardBorderColor,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 statusText,
@@ -421,9 +451,9 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                             ],
                           ),
                         ),
-                        
+
                         const Spacer(),
-                        
+
                         // Heure du pointage
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -444,7 +474,9 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                DateFormatter.formatTime(absence['heurePointage'] ?? ''),
+                                DateFormatter.formatTime(
+                                  absence['heurePointage'] ?? '',
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -456,7 +488,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                       ],
                     ),
                   ),
-                  
+
                   // Contenu principal
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -483,19 +515,20 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                             ),
                             // Indicateur de justification
                             Icon(
-                              absence['justification'] == true
+                              absence['isJustification'] == true
                                   ? Icons.check_circle_outline
                                   : Icons.info_outline,
                               size: 18,
-                              color: absence['justification'] == true
-                                  ? Colors.green
-                                  : Colors.grey,
+                              color:
+                                  absence['isJustification'] == true
+                                      ? Colors.green
+                                      : Colors.grey,
                             ),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 12),
-                        
+
                         // Informations supplémentaires
                         Row(
                           children: [
@@ -522,11 +555,14 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                                 ],
                               ),
                             ),
-                            
+
                             // Date du pointage (nouvelle position)
                             Container(
                               margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade100,
                                 borderRadius: BorderRadius.circular(4),
@@ -541,7 +577,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                                 ),
                               ),
                             ),
-                            
+
                             // Salle
                             Row(
                               children: [
@@ -565,20 +601,32 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                       ],
                     ),
                   ),
-                  
+
                   // Bouton pour justifier une absence
-                  if (peutJustifier)
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: Colors.grey.shade200),
-                        ),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade200),
                       ),
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.assignment_outlined, size: 16),
-                        label: const Text('Justifier cette absence'),
-                        onPressed: () {
+                    ),
+                    child: TextButton.icon(
+                      icon: Icon(
+                        estJustifiee
+                            ? Icons.visibility_outlined
+                            : Icons.assignment_outlined,
+                        size: 16,
+                      ),
+                      label: Text(
+                        estJustifiee
+                            ? 'Voir détail'
+                            : 'Justifier cette absence',
+                      ),
+                      onPressed: () {
+                        if (estJustifiee) {
+                          // Afficher les détails de la justification
+                          _afficherDetailsJustification(context, absence);
+                        } else {
                           // Naviguer vers le formulaire de justification
                           Get.toNamed(
                             '/etudiant/justification/form',
@@ -588,7 +636,10 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                               'date': DateFormatter.formatDate(absence['date']),
                               'duree': absence['duree'],
                               'professeur': absence['professeur'],
-                              'type': absence['type'] == 'RETARD' ? 'Retard' : 'Absence',
+                              'type':
+                                  absence['type'] == 'RETARD'
+                                      ? 'Retard'
+                                      : 'Absence',
                             },
                           )?.then((result) {
                             if (result == true) {
@@ -596,12 +647,13 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
                               controller.refreshData();
                             }
                           });
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppTheme.primaryColor,
-                        ),
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryColor,
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
@@ -644,7 +696,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
       }),
     );
   }
-  
+
   Widget _buildDetailRow(String label, String value) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -687,6 +739,125 @@ class EtudiantAbsencesView extends GetView<EtudiantController> { // Utiliser Etu
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _afficherDetailsJustification(
+    BuildContext context,
+    Map<String, dynamic> absence,
+  ) {
+    Get.dialog(
+      Dialog(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Titre
+              const Text(
+                'Détails de la justification',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+
+              // Information sur l'absence
+              _buildDetailRow(
+                'Matière',
+                absence['nomCours'] ?? 'Non spécifiée',
+              ),
+              _buildDetailRow(
+                'Date',
+                DateFormatter.formatDate(absence['date']),
+              ),
+              _buildDetailRow('État', 'Justifiée'),
+
+              // Description de la justification
+              const SizedBox(height: 12),
+              const Text(
+                'Motif de justification',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[200]!),
+                ),
+                width: double.infinity,
+                child: Text(
+                  absence['motifJustification'] ?? 'Aucun motif fourni',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+
+              // Pièces jointes (s'il y en a)
+              if (absence['pieceJointe'] != null) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Pièce justificative',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.insert_drive_file, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          absence['pieceJointe'].toString().split('/').last,
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Date de la justification
+              if (absence['dateJustification'] != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Justifié le ${DateFormatter.formatDate(absence['dateJustification'])}',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+
+              // Bouton de fermeture
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Get.back(),
+                  child: const Text('Fermer'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

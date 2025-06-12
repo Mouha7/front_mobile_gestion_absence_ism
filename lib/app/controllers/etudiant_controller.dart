@@ -19,6 +19,10 @@ class EtudiantController extends GetxController {
   final searchQuery = "".obs;
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
   final isDateFilterActive = false.obs;
+  
+  // Propriété pour l'onglet sélectionné
+  // (0 pour Accueil, 1 pour Historique)
+  final selectedTabIndex = 0.obs;
 
   @override
   void onReady() {
@@ -179,9 +183,9 @@ class EtudiantController extends GetxController {
                     absence['heureDebut'] ??
                     absence['cours']?['heureDebut'] ??
                     '',
-                'justification': absence['justification'] ?? false,
+                'justification': absence['isJustification'] ?? false,
                 'etat':
-                    (absence['justification'] == true)
+                    (absence['isJustification'] == true)
                         ? 'Justifiée'
                         : 'Non justifiée',
               };
@@ -220,9 +224,9 @@ class EtudiantController extends GetxController {
                         absence['heureDebut'] ??
                         absence['cours']?['heureDebut'] ??
                         '',
-                    'justification': absence['justification'] ?? false,
+                    'justification': absence['isJustification'] ?? false,
                     'etat':
-                        (absence['justification'] == true)
+                        (absence['isJustification'] == true)
                             ? 'Justifiée'
                             : 'Non justifiée',
                   };
@@ -285,5 +289,10 @@ class EtudiantController extends GetxController {
     } catch (e) {
       print('❌ Erreur lors du rafraîchissement du QR code: $e');
     }
+  }
+
+  // Méthode pour changer l'onglet
+  void changeTab(int index) {
+    selectedTabIndex.value = index;
   }
 }

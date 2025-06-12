@@ -35,10 +35,10 @@ class HistoriqueService extends GetxService {
           response['results'] != null &&
           response['status'] == 'OK') {
         final List<dynamic> results = response['results'];
-
         // Transformer les résultats en format attendu par l'interface
         return results.map((item) {
           final coursData = item['cours'] ?? {};
+          print("⬇️⬇️ Justification service: ${item['isJustification']}");
           return {
             'id': item['id'],
             'matiere': item['nomCours'] ?? coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
@@ -47,9 +47,9 @@ class HistoriqueService extends GetxService {
                 ? '${item['minutesRetard'] ?? 0} min'
                 : 'Journée entière',
             'professeur': item['professeur'] ?? coursData['enseignant'] ?? 'Non spécifié',
-            'justifie': item['justification'] ?? false,
+            'justifie': item['isJustification'] ?? false,
             'type': item['type'] ?? 'ABSENCE',
-            'etat': item['justification'] ? 'Justifiée' : 'Non justifiée',
+            'etat': item['isJustification'] ? 'Justifiée' : 'Non justifiée',
             'salle': item['salle'] ?? coursData['salle'] ?? 'Non spécifiée',
             'heureDebut': item['heureDebut'] ?? DateFormatter.formatTime(coursData['heureDebut']) ?? '',
             'heurePointage': item['heurePointage'] ?? '',
@@ -61,55 +61,6 @@ class HistoriqueService extends GetxService {
       }
     } catch (e) {
       print('❌ Erreur lors de la récupération des absences: $e');
-      return [];
-    }
-  }
-
-  // Récupérer la liste des retards pour l'étudiant connecté
-  Future<List<Map<String, dynamic>>> getRetards() async {
-    try {
-      final userId = _getUserId();
-      if (userId == null) {
-        throw Exception('Veuillez vous reconnecter pour accéder à vos retards');
-      }
-
-      // Utiliser la même API que pour les absences, mais filtrer seulement les retards
-      final response = await _apiService.get(
-        'etudiant/$userId/absences',
-      );
-
-      if (response != null &&
-          response['results'] != null &&
-          response['status'] == 'OK') {
-        final List<dynamic> results = response['results'];
-
-        // Filtrer seulement les retards (type = RETARD)
-        final retards =
-            results.where((item) => item['type'] == 'RETARD').toList();
-
-        // Transformer les résultats en format attendu par l'interface
-        return retards.map((item) {
-          final coursData = item['cours'] ?? {};
-          return {
-            'id': item['id'],
-            'matiere': coursData['matiereNom'] ?? coursData['nom'] ?? 'Cours inconnu',
-            'date': DateFormatter.formatDate(item['heurePointage'] ?? ''),
-            'duree': '${item['minutesRetard'] ?? 0} min',
-            'professeur': item['professeur'] ?? coursData['enseignant'] ?? 'Non spécifié',
-            'justifie': item['justification'] ?? false,
-            'type': item['type'] ?? 'RETARD',
-            'etat': (item['justification'] == true) ? 'Justifié' : 'Non justifié',
-            'salle': item['salle'] ?? coursData['salle'] ?? 'Non spécifiée',
-            'heureArrivee': DateFormatter.formatTime(item['heurePointage'] ?? ''),
-            'heureDebut': DateFormatter.formatTime(item['heureDebut']),
-          };
-        }).toList();
-      } else {
-        print('❌ Format de réponse invalide: $response');
-        return [];
-      }
-    } catch (e) {
-      print('❌ Erreur lors de la récupération des retards: $e');
       return [];
     }
   }
@@ -175,9 +126,9 @@ class HistoriqueService extends GetxService {
                     ? '${absence['minutesRetard'] ?? 0} min'
                     : 'Journée entière',
             'professeur': coursData['enseignant'] ?? 'Non spécifié',
-            'justifie': absence['justification'] ?? false,
+            'justifie': absence['isJustification'] ?? false,
             'type': absence['type'] ?? 'ABSENCE',
-            'etat': absence['justification'] ? 'Justifiée' : 'Non justifiée',
+            'etat': absence['isJustification'] ? 'Justifiée' : 'Non justifiée',
             'salle': coursData['salle'] ?? 'Non spécifiée',
             'heureDebut': coursData['heureDebut'] ?? '',
             'heureFin': coursData['heureFin'] ?? '',
@@ -220,7 +171,7 @@ class HistoriqueService extends GetxService {
 
       // Appel à l'API pour soumettre la justification
       final response = await _apiService.post(
-        'justifications',
+        'etudiant/justification',
         justificationData,
       );
 

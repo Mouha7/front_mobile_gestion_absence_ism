@@ -6,6 +6,7 @@ abstract class Routes {
 
   // Routes Étudiant
   static const ETUDIANT_DASHBOARD = '/etudiant/dashboard';
+  static const ETUDIANT_NAVIGATE = '/etudiant/navigate';
   static const ETUDIANT_ABSENCES = '/etudiant/absences';
   static const ETUDIANT_JUSTIFICATION = '/etudiant/justification';
   static const ETUDIANT_JUSTIFICATION_FORM = '/etudiant/justification/form';

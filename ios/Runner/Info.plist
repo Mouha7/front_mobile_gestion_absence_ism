@@ -51,5 +51,11 @@
 	<string>Nous avons besoin d'accéder à votre galerie pour sélectionner des documents justificatifs</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Nous n'utilisons pas le microphone mais il est requis pour le fonctionnement de la caméra</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cette application nécessite votre position pour vous guider vers le campus ISM</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Cette application nécessite votre position pour vous guider vers le campus ISM</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 </dict>
 </plist>

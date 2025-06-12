@@ -1,4 +1,5 @@
 import 'package:front_mobile_gestion_absence_ism/app/controllers/auth_controller.dart';
+import 'package:front_mobile_gestion_absence_ism/app/controllers/navigate_controller.dart';
 import 'package:front_mobile_gestion_absence_ism/app/data/services/storage_service.dart';
 import 'package:get/get.dart';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart';
@@ -24,5 +25,7 @@ class EtudiantBinding extends Bindings {
     if (!Get.isRegistered<AuthController>()) {
       Get.put(AuthController(), permanent: true);
     }
+    
+    Get.lazyPut<NavigateController>(() => NavigateController());
   }
 }
