@@ -1,6 +1,8 @@
 // Importez les autres vues et bindings
 import 'package:front_mobile_gestion_absence_ism/app/modules/auth/bindings/auth_binding.dart';
+import 'package:front_mobile_gestion_absence_ism/app/modules/auth/bindings/splash_binding.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/auth/views/login_view.dart';
+import 'package:front_mobile_gestion_absence_ism/app/modules/auth/views/splash_screen.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/bindings/etudiant_binding.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/home_screen.dart';
 import 'package:front_mobile_gestion_absence_ism/app/modules/etudiant/views/navigate_screen.dart';
@@ -20,7 +22,7 @@ import 'package:get/get_navigation/src/routes/get_route.dart';
 part 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(
@@ -69,6 +71,11 @@ class AppPages {
       name: Routes.VIGILE_PROFILE,
       page: () => VigileProfileView(),
       binding: VigileBinding(),
+    ),
+    GetPage(
+      name: Routes.SPLASH,
+      page: () => const SplashScreen(),
+      binding: SplashBinding(),
     ),
   ];
 }

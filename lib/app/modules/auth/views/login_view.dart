@@ -6,6 +6,8 @@ import '../../../controllers/auth_controller.dart';
 class LoginView extends GetView<AuthController> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final RxBool _isObscured =
+      true.obs; // Variable réactive pour l'état de visibilité du mot de passe
 
   LoginView({super.key});
 
@@ -33,49 +35,52 @@ class LoginView extends GetView<AuthController> {
                   labelText: 'Email',
                   labelStyle: TextStyle(color: Colors.white),
                   border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche
+                    borderSide: BorderSide(color: Colors.white),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche quand non sélectionné
+                    borderSide: BorderSide(color: Colors.white),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche quand sélectionné
+                    borderSide: BorderSide(color: Colors.white),
                   ),
                   prefixIcon: Icon(Icons.email, color: Colors.white),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
-              TextField(
-                controller: passwordController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Mot de passe',
-                  labelStyle: TextStyle(color: Colors.white),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche
+              // Champ de mot de passe avec bouton de visibilité
+              Obx(
+                () => TextField(
+                  controller: passwordController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Mot de passe',
+                    labelStyle: const TextStyle(color: Colors.white),
+                    border: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    enabledBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                    ),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.white),
+                    // Ajout d'une icône de bascule pour la visibilité du mot de passe
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isObscured.value
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        _isObscured.toggle(); // Bascule entre visible et masqué
+                      },
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche quand non sélectionné
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white,
-                    ), // Bordure blanche quand sélectionné
-                  ),
-                  prefixIcon: Icon(Icons.lock, color: Colors.white),
+                  obscureText: _isObscured.value, // Utilise la valeur réactive
                 ),
-                obscureText: true,
               ),
               const SizedBox(height: 10),
               Obx(
@@ -87,7 +92,7 @@ class LoginView extends GetView<AuthController> {
                         )
                         : const SizedBox(),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
               // Bouton de connexion
               Obx(
@@ -102,17 +107,19 @@ class LoginView extends GetView<AuthController> {
                               passwordController.text,
                             ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF422613), // Marron foncé
+                      backgroundColor: const Color(0xFF422613), // Marron foncé
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
                     child:
                         controller.isLoading.value
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text(
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
                               'Se connecter',
                               style: TextStyle(
                                 fontSize: 18,
