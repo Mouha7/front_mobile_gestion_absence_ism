@@ -26,13 +26,18 @@ class AbsenceAdapter extends TypeAdapter<Absence> {
       professeur: fields[6] as String,
       salle: fields[7] as String,
       heureDebut: fields[8] as String,
+      justificationId: fields[9] as String?,
+      descriptionJustification: fields[10] as String?,
+      piecesJointes: (fields[11] as List?)?.cast<String>(),
+      statutJustification: fields[12] as StatutJustification?,
+      dateValidationJustification: fields[13] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Absence obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +55,17 @@ class AbsenceAdapter extends TypeAdapter<Absence> {
       ..writeByte(7)
       ..write(obj.salle)
       ..writeByte(8)
-      ..write(obj.heureDebut);
+      ..write(obj.heureDebut)
+      ..writeByte(9)
+      ..write(obj.justificationId)
+      ..writeByte(10)
+      ..write(obj.descriptionJustification)
+      ..writeByte(11)
+      ..write(obj.piecesJointes)
+      ..writeByte(12)
+      ..write(obj.statutJustification)
+      ..writeByte(13)
+      ..write(obj.dateValidationJustification);
   }
 
   @override

@@ -19,7 +19,7 @@ class EtudiantController extends GetxController {
   final searchQuery = "".obs;
   final Rx<DateTime?> selectedDate = Rx<DateTime?>(null);
   final isDateFilterActive = false.obs;
-  
+
   // Propriété pour l'onglet sélectionné
   // (0 pour Accueil, 1 pour Historique)
   final selectedTabIndex = 0.obs;
@@ -184,6 +184,12 @@ class EtudiantController extends GetxController {
                     absence['cours']?['heureDebut'] ??
                     '',
                 'justification': absence['isJustification'] ?? false,
+                'justificationId': absence['justificationId'] ?? '',
+                'descriptionJustification': absence['descriptionJustification'],
+                'piecesJointes': absence['piecesJointes'] ?? [],
+                'statutJustification': absence['statutJustification'] ?? '',
+                'dateValidationJustification':
+                    absence['dateValidationJustification'],
                 'etat':
                     (absence['isJustification'] == true)
                         ? 'Justifiée'

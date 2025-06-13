@@ -83,9 +83,6 @@ class AuthService extends GetxService {
         "token": response["results"]["token"],
       };
 
-      // Ajouter un log pour vérifier l'email
-      print('📧 Email sauvegardé: ${user.email}');
-
       // Ajouter les données spécifiques au rôle
       if (loginResponse.role == 'VIGILE') {
         returnData["badge"] = (user as Vigile).badge;
@@ -99,6 +96,7 @@ class AuthService extends GetxService {
       }
 
       // Sauvegarder le même objet qu'on retourne
+      await _storageService.setToken(response["results"]["token"]);
       await _storageService.saveUser(returnData);
 
       return returnData;

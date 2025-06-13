@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:front_mobile_gestion_absence_ism/app/controllers/etudiant_controller.dart';
 import 'dart:io';
 import 'package:front_mobile_gestion_absence_ism/app/controllers/justification_controller.dart';
+import 'package:front_mobile_gestion_absence_ism/app/routes/app_pages.dart';
 import 'package:front_mobile_gestion_absence_ism/theme/app_theme.dart';
 import 'package:front_mobile_gestion_absence_ism/app/utils/helpers/snackbar_utils.dart';
 import 'package:get/get.dart';
@@ -97,26 +99,30 @@ class JustificationFormView extends GetView<JustificationController> {
                             ),
                           ),
                           // Nombre de pièces jointes
-                          Obx(() => controller.selectedFiles.isNotEmpty
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.primaryColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    '${controller.selectedFiles.length} pièce(s)',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                  ),
-                                )
-                              : const SizedBox.shrink()),
+                          Obx(
+                            () =>
+                                controller.selectedFiles.isNotEmpty
+                                    ? Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor
+                                            .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        '${controller.selectedFiles.length} pièce(s)',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                      ),
+                                    )
+                                    : const SizedBox.shrink(),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -367,7 +373,9 @@ class JustificationFormView extends GetView<JustificationController> {
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -397,7 +405,7 @@ class JustificationFormView extends GetView<JustificationController> {
 
   Widget _buildFilePreviewItem(File file, bool isImage, int index) {
     final String fileName = file.path.split('/').last;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -418,51 +426,55 @@ class JustificationFormView extends GetView<JustificationController> {
             child: SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: isImage
-                  ? Image.file(
-                      file,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[100],
-                        child: const Center(
-                          child: Icon(
-                            Icons.broken_image,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      color: Colors.grey[50],
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _getFileIcon(fileName),
-                              color: AppTheme.primaryColor,
-                              size: 30,
-                            ),
-                            const SizedBox(height: 4),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                fileName.length > 10
-                                    ? '${fileName.substring(0, 7)}...'
-                                    : fileName,
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey[700],
+              child:
+                  isImage
+                      ? Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        errorBuilder:
+                            (context, error, stackTrace) => Container(
+                              color: Colors.grey[100],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Colors.grey,
                                 ),
                               ),
                             ),
-                          ],
+                      )
+                      : Container(
+                        color: Colors.grey[50],
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _getFileIcon(fileName),
+                                color: AppTheme.primaryColor,
+                                size: 30,
+                              ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Text(
+                                  fileName.length > 10
+                                      ? '${fileName.substring(0, 7)}...'
+                                      : fileName,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
             ),
           ),
           // Bouton de suppression
@@ -480,11 +492,7 @@ class JustificationFormView extends GetView<JustificationController> {
                     bottomLeft: Radius.circular(7),
                   ),
                 ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 16),
               ),
             ),
           ),
@@ -545,52 +553,50 @@ class JustificationFormView extends GetView<JustificationController> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Ajouter un document',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Ajouter un document',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 20),
+                _buildOptionTile(
+                  icon: Icons.camera_alt,
+                  title: 'Prendre une photo',
+                  subtitle: 'Capturer une image avec l\'appareil photo',
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.pickFromCamera();
+                  },
+                ),
+                const Divider(),
+                _buildOptionTile(
+                  icon: Icons.photo_library,
+                  title: 'Choisir des images',
+                  subtitle: 'Sélectionner depuis la galerie',
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.pickImagesFromGallery();
+                  },
+                ),
+                const Divider(),
+                _buildOptionTile(
+                  icon: Icons.file_present,
+                  title: 'Choisir des documents',
+                  subtitle: 'PDF, Word, Excel, etc.',
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.pickMultipleFromDevice();
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
             ),
-            const SizedBox(height: 20),
-            _buildOptionTile(
-              icon: Icons.camera_alt,
-              title: 'Prendre une photo',
-              subtitle: 'Capturer une image avec l\'appareil photo',
-              onTap: () {
-                Navigator.pop(context);
-                controller.pickFromCamera();
-              },
-            ),
-            const Divider(),
-            _buildOptionTile(
-              icon: Icons.photo_library,
-              title: 'Choisir des images',
-              subtitle: 'Sélectionner depuis la galerie',
-              onTap: () {
-                Navigator.pop(context);
-                controller.pickImagesFromGallery();
-              },
-            ),
-            const Divider(),
-            _buildOptionTile(
-              icon: Icons.file_present,
-              title: 'Choisir des documents',
-              subtitle: 'PDF, Word, Excel, etc.',
-              onTap: () {
-                Navigator.pop(context);
-                controller.pickMultipleFromDevice();
-              },
-            ),
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -609,10 +615,7 @@ class JustificationFormView extends GetView<JustificationController> {
         ),
         child: Icon(icon, color: AppTheme.primaryColor),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(subtitle),
       onTap: onTap,
     );
@@ -674,8 +677,35 @@ class JustificationFormView extends GetView<JustificationController> {
     Navigator.pop(context);
 
     if (success) {
-      // Retourner à l'écran précédent avec succès
-      Get.back(result: true);
+      // Afficher un message de succès
+      Get.snackbar(
+        'Succès',
+        'Votre justification a été envoyée avec succès',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+        snackPosition: SnackPosition.TOP,
+      );
+
+      // Petit délai pour permettre à l'utilisateur de voir le message avant la navigation
+      await Future.delayed(const Duration(milliseconds: 1000));
+
+      // Retourner à l'écran d'historique des absences
+      Get.offNamed(Routes.ETUDIANT_ABSENCES);
+
+      // Rafraîchir les données de l'historique après la navigation
+      final etudiantController = Get.find<EtudiantController>();
+      await etudiantController.refreshData();
+    } else {
+      // Afficher un message d'erreur
+      Get.snackbar(
+        'Erreur',
+        'Une erreur est survenue lors de l\'envoi de votre justification',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+        snackPosition: SnackPosition.TOP,
+      );
     }
   }
 }
