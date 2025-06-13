@@ -24,6 +24,9 @@ class EtudiantController extends GetxController {
   // (0 pour Accueil, 1 pour Historique)
   final selectedTabIndex = 0.obs;
 
+  // Propriété pour le filtre temporel
+  final Rx<String> periodeFiltre = 'semaine'.obs; // 'jour', 'semaine', 'tout'
+
   @override
   void onReady() {
     super.onReady();
@@ -32,6 +35,15 @@ class EtudiantController extends GetxController {
 
     // Initialisation des données du QR code
     _initQRCodeData();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    refreshData();
+    _initQRCodeData();
+    // Initialisation par défaut sur la semaine
+    filterByPeriode('semaine');
   }
 
   // Méthode pour rechercher dans les absences
@@ -44,6 +56,8 @@ class EtudiantController extends GetxController {
   Future<void> filterByDate(DateTime date) async {
     selectedDate.value = date;
     isDateFilterActive.value = true;
+    periodeFiltre.value =
+        'custom'; // Marquer que nous utilisons une date personnalisée
     _applyFilters();
   }
 
@@ -54,12 +68,56 @@ class EtudiantController extends GetxController {
     _applyFilters();
   }
 
+  // Méthode pour filtrer par période
+  void filterByPeriode(String periode) {
+    periodeFiltre.value = periode;
+    // Réinitialiser le filtre de date spécifique
+    if (periode != 'custom') {
+      isDateFilterActive.value = false;
+      selectedDate.value = null;
+    }
+    _applyFilters();
+  }
+
   // Méthode privée pour appliquer les filtres
   void _applyFilters() {
     // Commencer avec la liste complète
     List<Map<String, dynamic>> result = List<Map<String, dynamic>>.from(
       absences,
     );
+
+    // Filtrer par période
+    if (periodeFiltre.value == 'jour') {
+      final now = DateTime.now();
+      result =
+          result.where((absence) {
+            try {
+              final absenceDate = DateTime.parse(absence['date']);
+              return absenceDate.day == now.day &&
+                  absenceDate.month == now.month &&
+                  absenceDate.year == now.year;
+            } catch (e) {
+              return false;
+            }
+          }).toList();
+    } else if (periodeFiltre.value == 'semaine') {
+      final now = DateTime.now();
+      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+      result =
+          result.where((absence) {
+            try {
+              final absenceDate = DateTime.parse(absence['date']);
+              return absenceDate.isAfter(
+                    startOfWeek.subtract(const Duration(days: 1)),
+                  ) &&
+                  absenceDate.isBefore(endOfWeek.add(const Duration(days: 1)));
+            } catch (e) {
+              return false;
+            }
+          }).toList();
+    }
 
     // Appliquer le filtre de recherche si présent
     if (searchQuery.isNotEmpty) {

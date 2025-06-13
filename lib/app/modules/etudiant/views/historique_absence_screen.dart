@@ -97,8 +97,8 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
   }
 
   Widget _buildFilterSection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Filtrer par :',
@@ -108,107 +108,155 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        const SizedBox(height: 8),
         Row(
           children: [
-            // Bouton pour filtrer par date
-            Container(
-              margin: const EdgeInsets.only(right: 8),
-              child: InkWell(
-                onTap: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: Get.context!,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                    builder: (context, child) {
-                      return Theme(
-                        data: ThemeData.light().copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: AppTheme.primaryColor,
-                          ),
-                          dialogTheme: DialogThemeData(
-                            backgroundColor: Colors.white,
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-
-                  if (pickedDate != null) {
-                    controller.filterByDate(pickedDate);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 16,
-                        color: AppTheme.primaryColor,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Date',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            // Filtre par période (aujourd'hui, semaine, tout)
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Obx(() => Row(
+                  children: [
+                    _buildPeriodeFilterChip('jour', 'Aujourd\'hui'),
+                    const SizedBox(width: 8),
+                    _buildPeriodeFilterChip('semaine', 'Cette semaine'),
+                    const SizedBox(width: 8),
+                    _buildPeriodeFilterChip('tout', 'Tout'),
+                    const SizedBox(width: 8),
+                    _buildDatePickerButton(),
+                  ],
+                )),
               ),
-            ),
-
-            // Affichage du filtre actif
-            Obx(
-              () =>
-                  controller.isDateFilterActive.value
-                      ? Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            GestureDetector(
-                              onTap: () => controller.resetDateFilter(),
-                              child: Icon(
-                                Icons.close,
-                                color: AppTheme.primaryColor,
-                                size: 18,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      : const SizedBox.shrink(),
             ),
           ],
         ),
+        
+        // Affichage du filtre de date spécifique s'il est actif
+        Obx(() => controller.isDateFilterActive.value
+          ? Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Date: ${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
+                    style: TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () {
+                      controller.resetDateFilter();
+                      // Retour au filtre par semaine par défaut
+                      controller.filterByPeriode('semaine');
+                    },
+                    child: Icon(
+                      Icons.close,
+                      color: AppTheme.primaryColor,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
+        ),
       ],
+    );
+  }
+
+  Widget _buildPeriodeFilterChip(String value, String label) {
+    return InkWell(
+      onTap: () => controller.filterByPeriode(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: controller.periodeFiltre.value == value 
+            ? AppTheme.secondaryColor 
+            : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: controller.periodeFiltre.value == value 
+              ? Colors.white 
+              : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerButton() {
+    return InkWell(
+      onTap: () async {
+        final DateTime? pickedDate = await showDatePicker(
+          context: Get.context!,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: AppTheme.primaryColor,
+                ),
+                dialogTheme: DialogThemeData(
+                  backgroundColor: Colors.white,
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+
+        if (pickedDate != null) {
+          controller.filterByDate(pickedDate);
+          // Mettre à jour le type de filtre à "custom"
+          controller.periodeFiltre.value = 'custom';
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: controller.periodeFiltre.value == 'custom' 
+            ? AppTheme.secondaryColor 
+            : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today, 
+              size: 14,
+              color: controller.periodeFiltre.value == 'custom' 
+                ? Colors.white 
+                : AppTheme.primaryColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Date précise',
+              style: TextStyle(
+                color: controller.periodeFiltre.value == 'custom'
+                  ? Colors.white 
+                  : Colors.black87,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -252,8 +300,6 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
         ),
       );
     }
-
-    print("historique --> $absences");
 
     return Container(
       margin: const EdgeInsets.only(top: 16),
@@ -519,7 +565,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
                             Icon(
                               absence['isJustification'] == true
                                   ? Icons.check_circle_outline
-                                  : Icons.info_outline,
+                                  : Icons.arrow_forward_ios,
                               size: 18,
                               color:
                                   absence['isJustification'] == true
@@ -926,7 +972,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
             ),
           ),
         ),
-      ),
+      )
     );
   }
 

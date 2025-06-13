@@ -35,10 +35,15 @@ class VigileController extends GetxController {
   // Ajoutez cette propriété pour le verrou
   final RxBool isProcessingPointage = false.obs;
 
+  // Propriété pour le filtre temporel
+  final Rx<String> periodeFiltre = 'jour'.obs; // 'jour', 'semaine', 'tout'
+
   @override
   void onInit() {
     super.onInit();
     refreshData();
+    // Initialiser par défaut sur "Aujourd'hui"
+    filterByPeriode('jour');
   }
 
   @override
@@ -240,8 +245,20 @@ class VigileController extends GetxController {
     }
   }
 
+  // Méthode pour filtrer par période
+  void filterByPeriode(String periode) {
+    periodeFiltre.value = periode;
+    // Réinitialiser le filtre de date spécifique si ce n'est pas une date personnalisée
+    if (periode != 'custom') {
+      isDateFilterActive.value = false;
+      selectedDate.value = null;
+    }
+    applyFilters();
+  }
+
+  // Modifier la méthode applyFilters pour prendre en compte la période
   void applyFilters() {
-    // Appliquer les filtres (recherche et date)
+    // Appliquer les filtres (recherche et date/période)
     var result = List<Map<String, dynamic>>.from(historiqueList);
 
     // Filtre par recherche
@@ -260,7 +277,39 @@ class VigileController extends GetxController {
           }).toList();
     }
 
-    // Filtre par date
+    // Filtre par période
+    if (periodeFiltre.value == 'jour') {
+      final now = DateTime.now();
+      final today =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      result = result.where((item) => item["date"] == today).toList();
+    } else if (periodeFiltre.value == 'semaine') {
+      final now = DateTime.now();
+      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+      result =
+          result.where((item) {
+            try {
+              final parts = (item["date"] as String).split('-');
+              if (parts.length != 3) return false;
+              final absenceDate = DateTime(
+                int.parse(parts[0]),
+                int.parse(parts[1]),
+                int.parse(parts[2]),
+              );
+              return absenceDate.isAfter(
+                    startOfWeek.subtract(const Duration(days: 1)),
+                  ) &&
+                  absenceDate.isBefore(endOfWeek.add(const Duration(days: 1)));
+            } catch (e) {
+              print('❌ Erreur de parsing de date: $e');
+              return false;
+            }
+          }).toList();
+    }
+
+    // Filtre par date spécifique
     if (isDateFilterActive.value && selectedDate.value != null) {
       final dateStr =
           "${selectedDate.value!.year}-${selectedDate.value!.month.toString().padLeft(2, '0')}-${selectedDate.value!.day.toString().padLeft(2, '0')}";
@@ -278,12 +327,17 @@ class VigileController extends GetxController {
   void filterByDate(DateTime date) {
     selectedDate.value = date;
     isDateFilterActive.value = true;
+    periodeFiltre.value =
+        'custom'; // Marquer que nous utilisons une date personnalisée
     applyFilters();
   }
 
+  // Ajouter une méthode pour réinitialiser le filtre de date
   void resetDateFilter() {
-    selectedDate.value = null;
     isDateFilterActive.value = false;
+    selectedDate.value = null;
+    // Revenir au filtre jour par défaut
+    periodeFiltre.value = 'jour';
     applyFilters();
   }
 }

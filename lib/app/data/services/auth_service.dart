@@ -96,7 +96,7 @@ class AuthService extends GetxService {
       }
 
       // Sauvegarder le même objet qu'on retourne
-      await _storageService.setToken(response["results"]["token"]);
+      // await _storageService.setToken(response["results"]["token"]);
       await _storageService.saveUser(returnData);
 
       return returnData;

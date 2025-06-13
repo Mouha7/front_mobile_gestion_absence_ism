@@ -78,112 +78,83 @@ class VigileHistoriqueView extends GetView<VigileController> {
   }
 
   Widget _buildFilterSection() {
-    return Obx(
-      () => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Filtrer par :',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Filtrer par :',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          Row(
-            children: [
-              // Afficher la date sélectionnée si le filtre est actif
-              if (controller.isDateFilterActive.value)
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            // Filtre par période (aujourd'hui, semaine, tout)
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Obx(
+                  () => Row(
                     children: [
-                      Text(
-                        '${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: () => controller.resetDateFilter(),
-                        child: Icon(
-                          Icons.close,
-                          color: AppTheme.primaryColor,
-                          size: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              // Bouton pour sélectionner une date
-              GestureDetector(
-                onTap: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: Get.context!,
-                    initialDate:
-                        controller.selectedDate.value ?? DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                    builder: (context, child) {
-                      return Theme(
-                        data: Theme.of(context).copyWith(
-                          colorScheme: ColorScheme.light(
-                            primary: AppTheme.primaryColor,
-                            onPrimary: Colors.white,
-                            onSurface: Colors.black,
-                          ),
-                          textButtonTheme: TextButtonThemeData(
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ),
-                        child: child!,
-                      );
-                    },
-                  );
-
-                  if (pickedDate != null) {
-                    controller.filterByDate(pickedDate);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: const Row(
-                    children: [
-                      Text(
-                        'Date',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Icon(Icons.arrow_drop_down),
+                      _buildPeriodeFilterChip('jour', 'Aujourd\'hui'),
+                      const SizedBox(width: 8),
+                      _buildPeriodeFilterChip('semaine', 'Cette semaine'),
+                      const SizedBox(width: 8),
+                      _buildPeriodeFilterChip('tout', 'Tout'),
+                      const SizedBox(width: 8),
+                      _buildDatePickerButton(),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+
+        // Affichage du filtre de date spécifique s'il est actif
+        Obx(
+          () =>
+              controller.isDateFilterActive.value
+                  ? Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Date: ${controller.selectedDate.value!.day.toString().padLeft(2, '0')}/${controller.selectedDate.value!.month.toString().padLeft(2, '0')}/${controller.selectedDate.value!.year}',
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            controller.resetDateFilter();
+                          },
+                          child: Icon(
+                            Icons.close,
+                            color: AppTheme.primaryColor,
+                            size: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                  : const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 
@@ -494,6 +465,101 @@ class VigileHistoriqueView extends GetView<VigileController> {
     if (dateParts.length < 3) return dateStr;
 
     return '${dateParts[2]}/${dateParts[1]}/${dateParts[0]}';
+  }
+
+  Widget _buildPeriodeFilterChip(String value, String label) {
+    return InkWell(
+      onTap: () => controller.filterByPeriode(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color:
+              controller.periodeFiltre.value == value
+                  ? AppTheme.secondaryColor
+                  : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color:
+                controller.periodeFiltre.value == value
+                    ? Colors.white
+                    : Colors.black87,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDatePickerButton() {
+    return InkWell(
+      onTap: () async {
+        final DateTime? pickedDate = await showDatePicker(
+          context: Get.context!,
+          initialDate: controller.selectedDate.value ?? DateTime.now(),
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2030),
+          builder: (context, child) {
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: ColorScheme.light(
+                  primary: AppTheme.primaryColor,
+                  onPrimary: Colors.white,
+                  onSurface: Colors.black,
+                ),
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+
+        if (pickedDate != null) {
+          controller.filterByDate(pickedDate);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color:
+              controller.periodeFiltre.value == 'custom'
+                  ? AppTheme.secondaryColor
+                  : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.calendar_today,
+              size: 14,
+              color:
+                  controller.periodeFiltre.value == 'custom'
+                      ? Colors.white
+                      : AppTheme.primaryColor,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Date précise',
+              style: TextStyle(
+                color:
+                    controller.periodeFiltre.value == 'custom'
+                        ? Colors.white
+                        : Colors.black87,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override

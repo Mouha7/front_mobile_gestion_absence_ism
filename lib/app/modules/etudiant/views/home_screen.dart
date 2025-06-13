@@ -453,7 +453,7 @@ class EtudiantDashboardView extends GetView<EtudiantController> {
                             ),
                             // Indicateur que la carte est cliquable
                             const Icon(
-                              Icons.info_outline,
+                              Icons.arrow_forward_ios,
                               size: 18,
                               color: Colors.grey,
                             ),
