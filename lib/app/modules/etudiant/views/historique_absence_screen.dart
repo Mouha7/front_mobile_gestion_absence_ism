@@ -940,7 +940,7 @@ class EtudiantAbsencesView extends GetView<EtudiantController> {
                           ),
                         ),
                       )
-                      .toList(),
+                      ,
                 ],
 
                 // Informations sur la validation

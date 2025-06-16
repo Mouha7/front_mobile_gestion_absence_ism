@@ -119,7 +119,8 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "assets/images/logo_ism.jpg"
-  min_sdk_android: 21
+  image_path: "assets/images/logo_ism.png"
+  adaptive_icon_background: "#6D4C41"
+  remove_alpha_ios: true
